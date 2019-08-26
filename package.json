@@ -4,7 +4,8 @@
   "description": "c-org javascript library.",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint . --fix"
+    "lint": "eslint . --fix",
+    "lintNoFix": "eslint ."
   },
   "license": "MIT",
   "dependencies": {
