@@ -10,6 +10,15 @@
     "bignumber.js": "9.0.0",
     "c-org-abi": "1.0.1",
     "core-js": "2.6.9",
+    "eslint-plugin-html": "^6.0.0",
+    "eslint-plugin-json": "^1.4.0",
+    "eslint-plugin-prettier": "^3.1.0",
     "web3": "1.2.1"
+  },
+  "devDependencies": {
+    "eslint": "^6.2.2",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-markdown": "^1.0.0",
+    "eslint-plugin-import": "^2.18.2"
   }
 }
