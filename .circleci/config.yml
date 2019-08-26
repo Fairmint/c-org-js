@@ -12,8 +12,7 @@ jobs:
 
       - run: npm i
       
-      - run: npm run lint
-      - run: bash .circleci/commit.sh
+      - run: npm run lintNoFix
 
       # save checkout & build
       - persist_to_workspace:
