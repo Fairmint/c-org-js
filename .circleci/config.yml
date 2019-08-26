@@ -50,7 +50,7 @@ workflows:
                 - artifacts
       - publish:
           requires:
-            - build
+            - test
           filters:
             tags:
               only: /^v.*/
