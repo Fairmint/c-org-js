@@ -1,79 +1,46 @@
-import Web3 from 'web3';
-import abi from 'c-org-abi/abi.json';
-import BigNumber from 'bignumber.js';
-import networks from './networks.js';
-import constants from './constants';
+const Web3 = require('web3');
+const abi = require('c-org-abi/abi.json');
+const BigNumber = require('bignumber.js');
+const networks = require('./networks.js');
+const constants = require('./constants');
 
-export default class Corg {
-  async _getContractsFrom(network, oldWeb3, address) {
+module.exports = class Corg {
+  async _getContractsFrom(network, nativeWeb3, address) {
     try {
       let isNetworkMatch = false;
       let web3 = new Web3(networks[network].provider);
       try {
         const [networkId, newNetworkId] = await Promise.all([
-          new Promise(((resolve) => {
-            if (!oldWeb3) resolve(-1);
-            oldWeb3.version.getNetwork(((e, networkId) => resolve(networkId)));
-          })),
+          nativeWeb3.eth.net.getId(),
           web3.eth.net.getId(),
         ]);
 
         if (networkId.toString() === newNetworkId.toString()) {
-          web3 = new Web3(oldWeb3.currentProvider);
+          web3 = nativeWeb3;
           isNetworkMatch = true;
         }
       } catch (e) {
         // ignore
       }
       const networkName = networks[network].name;
-      let fairContract = new web3.eth.Contract(abi.fair, address);
 
-      const [decimals, datAddress] = await Promise.all([
-        fairContract.methods.decimals().call(),
-        fairContract.methods.datAddress().call(),
-      ]);
-
-      try {
-        if (decimals > 0) {
-          if (datAddress !== web3.utils.padLeft(0, 40)) {
-            const datContract = new web3.eth.Contract(abi.dat, datAddress);
-            const currencyAddress = await datContract.methods.currencyAddress().call();
-            const currency = currencyAddress ? new web3.eth.Contract(abi.erc20, currencyAddress) : null;
-            const erc1404 = new web3.eth.Contract(abi.erc1404, await fairContract.methods.erc1404Address().call());
-            return {
-              web3, isNetworkMatch, networkName, dat: datContract, fair: fairContract, currency, erc1404,
-            };
-          }
-        }
+      const datContract = new web3.eth.Contract(abi.dat, address);
+      const currencyAddress = await datContract.methods.currencyAddress().call()
+      const currency = currencyAddress && currencyAddress !== web3.utils.padLeft(0, 40) 
+        ? new web3.eth.Contract(abi.erc20, currencyAddress) : null;
+      const whitelist = new web3.eth.Contract(abi.whitelist, await datContract.methods.whitelistAddress().call());
+      return {
+          web3, isNetworkMatch, networkName, dat: datContract, currency, whitelist,
+        };
       } catch (e) {
-      // ignore
+        // ignore
       }
-      try {
-        const datContract = new web3.eth.Contract(abi.dat, address);
-        const [fairAddress, currencyAddress] = await Promise.all([
-          datContract.methods.fairAddress().call(),
-          datContract.methods.currencyAddress().call(),
-        ]);
-        const currency = currencyAddress ? new web3.eth.Contract(abi.erc20, currencyAddress) : null;
-        if (fairAddress !== web3.utils.padLeft(0, 40)) {
-          fairContract = new web3.eth.Contract(abi.fair, fairAddress);
-          const erc1404 = new web3.eth.Contract(abi.erc1404, await fairContract.methods.erc1404Address().call());
-          return {
-            web3, isNetworkMatch, networkName, dat: datContract, fair: fairContract, currency, erc1404,
-          };
-        }
-      } catch (e) {
-      // ignore
-      }
-    } catch (e) {
-    // ignore
-    }
   }
 
-  async _getContracts(oldWeb3, address) {
+  async _getContracts(nativeWeb3, address) {
     const promises = [];
     for (const network in networks) {
-      promises.push(this._getContractsFrom(network, oldWeb3, address));
+      promises.push(this._getContractsFrom(network, nativeWeb3, address));
     }
     const results = await Promise.all(promises);
     for (const result of results) {
@@ -85,7 +52,8 @@ export default class Corg {
     return undefined; // address not found on any supported network
   }
 
-  async getContracts(web3, address) {
+  async getContracts(anyWeb3, address) {
+    const web3 = new Web3(anyWeb3.currentProvider);
     const contracts = await this._getContracts(web3, address);
     if (contracts) {
       {
@@ -101,10 +69,13 @@ export default class Corg {
           investmentReserve,
           revenueCommitment,
         ] = await Promise.all([
-          contracts.fair.methods.decimals().call(),
-          contracts.currency.methods.decimals().call(),
-          contracts.currency ? contracts.currency.methods.name().call() : 'Ether',
-          contracts.currency ? contracts.currency.methods.symbol().call() : 'ETH',
+          contracts.dat.methods.decimals().call(),
+          contracts.currency ? contracts.currency.methods.decimals().call() : 18,
+          // TODO reading a string throws overflow (operation="setValue", fault="overflow", details="Number can only safely store up to 53 bits")
+          "todo",
+          "todo",
+          // contracts.currency ? contracts.currency.methods.name().call() : 'Ether',
+          // contracts.currency ? contracts.currency.methods.symbol().call() : 'ETH',
           contracts.dat.methods.buySlopeNum().call(),
           contracts.dat.methods.buySlopeDen().call(),
           contracts.dat.methods.initGoal().call(),
@@ -121,17 +92,18 @@ export default class Corg {
             symbol: currencySymbol,
           },
         };
+
         contracts.data.buySlope = new BigNumber(buySlopeNum).div(buySlopeDen).shiftedBy(contracts.data.currency.decimals),
         contracts.data.initGoal = new BigNumber(initGoal).shiftedBy(-contracts.data.decimals),
         contracts.data.initReserve = new BigNumber(initReserve).shiftedBy(-contracts.data.decimals),
         contracts.data.investmentReserve = new BigNumber(investmentReserve).div(constants.BASIS_POINTS_DEN),
         contracts.data.revenueCommitment = new BigNumber(revenueCommitment).div(constants.BASIS_POINTS_DEN);
-      }
+  }
 
       contracts.sendTx = async (tx) => new Promise((resolve) => {
         tx.send({
           from: contracts.data.account.address,
-          gas: 500000, // todo estimate gas
+          gas: "500000", // todo estimate gas
           gasPrice: contracts.web3.utils.toWei('1.1', 'Gwei'),
         })
           .on('transactionHash', (tx) => {
@@ -144,8 +116,8 @@ export default class Corg {
           contracts.data.account = { address: account };
           const [ethBalance, fairBalance, kycApproved, currencyBalance, allowance] = await Promise.all([
             contracts.web3.eth.getBalance(account),
-            contracts.fair.methods.balanceOf(account).call(),
-            contracts.erc1404.methods.approved(account).call(),
+            contracts.dat.methods.balanceOf(account).call(),
+            contracts.whitelist.methods.approved(account).call(),
             contracts.currency ? contracts.currency.methods.balanceOf(account).call() : undefined,
             contracts.currency ? contracts.currency.methods.allowance(account, contracts.dat._address).call() : undefined,
           ]);
@@ -173,10 +145,10 @@ export default class Corg {
             openUntilAtLeast,
             stateId,
           ] = await Promise.all([
-            contracts.fair.methods.totalSupply().call(),
-            contracts.fair.methods.burnedSupply().call(),
-            contracts.fair.methods.name().call(),
-            contracts.fair.methods.symbol().call(),
+            contracts.dat.methods.totalSupply().call(),
+            contracts.dat.methods.burnedSupply().call(),
+            contracts.dat.methods.name().call(),
+            contracts.dat.methods.symbol().call(),
             contracts.dat.methods.beneficiary().call(),
             contracts.dat.methods.control().call(),
             contracts.dat.methods.feeCollector().call(),
@@ -202,8 +174,10 @@ export default class Corg {
           contracts.data.openUntilAtLeast = openUntilAtLeast;
           contracts.data.state = constants.STATES[stateId];
         },
-        approve: async () => await contracts.sendTx(contracts.currency.methods.approve(contracts.dat._address, -1)),
-        kyc: async (account, isApproved) => await contracts.sendTx(contracts.erc1404.methods.approve(account, isApproved)),
+        approve: async () => {
+          await contracts.sendTx(contracts.currency.methods.approve(contracts.dat._address, -1))
+        },
+        kyc: async (account, isApproved = true) => await contracts.sendTx(contracts.whitelist.methods.approve(account, isApproved)),
         estimateBuyValue: async (currencyAmount) => {
           if (!currencyAmount) return 0;
           const currencyValue = new BigNumber(currencyAmount).shiftedBy(contracts.data.currency.decimals);
@@ -220,7 +194,10 @@ export default class Corg {
           const estimateBuyValue = await contracts.helpers.estimateBuyValue(currencyAmount);
           if (!estimateBuyValue || estimateBuyValue.eq(0)) throw new Error('0 expected value');
           const currencyValue = new BigNumber(currencyAmount).shiftedBy(contracts.data.currency.decimals).dp(0);
-          const minBuyValue = estimateBuyValue.times(new BigNumber(100).minus(maxSlipPercent).div(100)).shiftedBy(contracts.data.decimals).dp(0);
+          let minBuyValue = estimateBuyValue.times(new BigNumber(100).minus(maxSlipPercent).div(100)).shiftedBy(contracts.data.decimals).dp(0);
+          if(minBuyValue.lt(1)) {
+            minBuyValue = new BigNumber(1);
+          }
           return await contracts.sendTx(contracts.dat.methods.buy(sendTo, currencyValue.toFixed(), minBuyValue.toFixed()));
         },
         estimateSellValue: async (tokenAmount) => {
@@ -244,7 +221,10 @@ export default class Corg {
           const estimateSellValue = await contracts.helpers.estimateSellValue(tokenAmount);
           if (!estimateSellValue || estimateSellValue.eq(0)) throw new Error('0 expected value');
           const tokenValue = new BigNumber(tokenAmount).shiftedBy(contracts.data.currency.decimals).dp(0);
-          const minSellValue = estimateSellValue.times(new BigNumber(100).minus(maxSlipPercent).div(100)).shiftedBy(contracts.data.decimals).dp(0);
+          let minSellValue = estimateSellValue.times(new BigNumber(100).minus(maxSlipPercent).div(100)).shiftedBy(contracts.data.decimals).dp(0);
+          if(minSellValue.lt(1)) {
+            minSellValue = new BigNumber(1);
+          }
           return await contracts.sendTx(contracts.dat.methods.sell(sendTo, tokenValue.toFixed(), minSellValue.toFixed()));
         },
         estimatePayValue: async (currencyAmount) => {
@@ -265,7 +245,7 @@ export default class Corg {
         },
         burn: async (tokenAmount) => {
           const tokenValue = new BigNumber(tokenAmount).shiftedBy(contracts.data.currency.decimals).dp(0);
-          return await contracts.sendTx(contracts.fair.methods.burn(tokenValue.toFixed(), []));
+          return await contracts.sendTx(contracts.dat.methods.burn(tokenValue.toFixed()));
         },
       };
     }

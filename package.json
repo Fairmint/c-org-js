@@ -1,27 +1,34 @@
 {
   "name": "c-org-js",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "c-org javascript library.",
   "main": "index.js",
   "scripts": {
+    "ganache": "ganache-cli -e 10000000000 -a 100",
     "lint": "eslint . --fix",
-    "lintNoFix": "eslint ."
+    "lintNoFix": "eslint .",
+    "test": "truffle test"
   },
   "license": "MIT",
   "dependencies": {
     "babel-runtime": "6.26.0",
     "bignumber.js": "9.0.0",
-    "c-org-abi": "1.0.1",
+    "c-org-abi": "1.1.1",
     "core-js": "2.6.9",
+    "hardlydifficult-test-helpers": "^0.4.0",
+    "truffle": "^5.0.37",
+    "truffle-assertions": "^0.9.1",
     "web3": "1.2.1"
   },
   "devDependencies": {
     "eslint": "6.2.2",
     "eslint-config-airbnb-base": "14.0.0",
     "eslint-plugin-markdown": "1.0.0",
+    "eslint-plugin-mocha": "^6.1.1",
     "eslint-plugin-html": "6.0.0",
     "eslint-plugin-import": "2.18.2",
     "eslint-plugin-json": "1.4.0",
-    "eslint-plugin-prettier": "3.1.0"
+    "eslint-plugin-prettier": "3.1.0",
+    "ganache-cli": "6.6.0"
   }
 }
