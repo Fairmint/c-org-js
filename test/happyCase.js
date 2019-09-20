@@ -1,4 +1,4 @@
-const { protocols } = require('hardlydifficult-test-helpers');
+const { tokens, protocols } = require('hardlydifficult-test-helpers');
 const Corg = require('../index');
 const truffleAssert = require('truffle-assertions');
 
@@ -8,10 +8,17 @@ contract('protocols / c-org', (accounts) => {
   const feeCollector = accounts[2];
   let cOrgLibrary;
 
-  before(async () => {
+  beforeEach(async () => {
+    // Deploy a DAI contract for testing
+    const dai = await tokens.dai.deploy(web3, accounts[0]);
+    // Mint test tokens
+    for(let i = 0; i < accounts.length; i++) {
+      await dai.mint(accounts[i], "1000000000000000000000000", { from: accounts[0] });
+    }
+
     const contracts = await protocols.cOrg.deploy(web3, {
       initReserve: '42000000000000000000',
-      currency: web3.utils.padLeft(0, 40),
+      currency: dai.address,
       initGoal: '0',
       buySlopeNum: '1',
       buySlopeDen: '100000000000000000000',
@@ -29,32 +36,60 @@ contract('protocols / c-org', (accounts) => {
     });
     const corg = new Corg()
     cOrgLibrary = await corg.getContracts(web3, contracts.dat.address);
-    console.log(cOrgLibrary)
+    await cOrgLibrary.helpers.refreshOrgInfo();
   });
 
-  it('Buy should fail if not approved', async () => {
-    await truffleAssert.fails(
-      contracts.dat.buy(accounts[9], '10000000000000', 1, {
-        from: accounts[9],
-        value: '10000000000000'
-      }),
-      'revert'
-    );
+  it('Defaults to 0 balance', async () => {
+    await cOrgLibrary.helpers.refreshAccountInfo(accounts[9]);
+    assert.equal(cOrgLibrary.data.account.fairBalance.toFixed(), '0');
   });
 
-  describe('once approved', async () => {
-    before(async () => {
-      await contracts.whitelist.approve(accounts[9], true, { from: control });
+  describe('once approved', () => {
+    beforeEach(async () => {
+      await cOrgLibrary.helpers.refreshAccountInfo(accounts[1]); // switch to control
+      await cOrgLibrary.helpers.kyc(accounts[9]);
+      await cOrgLibrary.helpers.refreshAccountInfo(accounts[9]); // switch to test account
+      await cOrgLibrary.helpers.approve();
+
+      await cOrgLibrary.helpers.buy('1', 100);
     });
 
     it('Can buy fair', async () => {
-      await contracts.dat.buy(accounts[9], '10000000000000', 1, {
-        from: accounts[9],
-        value: '10000000000000'
-      });
-
-      const balance = await contracts.dat.balanceOf(accounts[9]);
-      assert.equal(balance.toString(), '23809500000000');
+      await cOrgLibrary.helpers.refreshAccountInfo(accounts[9]);
+      assert.equal(cOrgLibrary.data.account.fairBalance.toFixed(), '2.3170396123');
     });
+    
+    describe('pay', () => {
+      beforeEach(async () => {
+        await cOrgLibrary.helpers.pay('1')
+      })
+
+      it('Can pay the contract', async () => {
+        await cOrgLibrary.helpers.refreshAccountInfo(accounts[9]);
+        assert.equal(cOrgLibrary.data.account.fairBalance.toFixed(), '2.5421149026');
+      });
+    })
+    
+    describe('burn after purchase', () => {
+      beforeEach(async () => {
+        await cOrgLibrary.helpers.burn('0.0000000001')
+      })
+
+      it('Can burn fair', async () => {
+        await cOrgLibrary.helpers.refreshAccountInfo(accounts[9]);
+        assert.equal(cOrgLibrary.data.account.fairBalance.toFixed(), '2.3170396122');
+      });
+    })
+    
+    describe('sell after purchase', () => {
+      beforeEach(async () => {
+        await cOrgLibrary.helpers.sell('1', 100)
+      })
+
+      it('Can sell fair', async () => {
+        await cOrgLibrary.helpers.refreshAccountInfo(accounts[9]);
+        assert.equal(cOrgLibrary.data.account.fairBalance.toFixed(), '1.3170396123');
+      });
+    })
   });
 });
