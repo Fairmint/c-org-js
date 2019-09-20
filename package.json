@@ -11,7 +11,7 @@
   "dependencies": {
     "babel-runtime": "6.26.0",
     "bignumber.js": "9.0.0",
-    "c-org-abi": "1.1.0",
+    "c-org-abi": "1.1.1",
     "core-js": "2.6.9",
     "web3": "1.2.1"
   },
