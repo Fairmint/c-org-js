@@ -71,11 +71,8 @@ module.exports = class Corg {
         ] = await Promise.all([
           contracts.dat.methods.decimals().call(),
           contracts.currency ? contracts.currency.methods.decimals().call() : 18,
-          // TODO reading a string throws overflow (operation="setValue", fault="overflow", details="Number can only safely store up to 53 bits")
-          "todo",
-          "todo",
-          // contracts.currency ? contracts.currency.methods.name().call() : 'Ether',
-          // contracts.currency ? contracts.currency.methods.symbol().call() : 'ETH',
+          contracts.currency ? contracts.currency.methods.name().call() : 'Ether',
+          contracts.currency ? contracts.currency.methods.symbol().call() : 'ETH',
           contracts.dat.methods.buySlopeNum().call(),
           contracts.dat.methods.buySlopeDen().call(),
           contracts.dat.methods.initGoal().call(),
@@ -93,7 +90,7 @@ module.exports = class Corg {
           },
         };
 
-        contracts.data.buySlope = new BigNumber(buySlopeNum).div(buySlopeDen).shiftedBy(contracts.data.currency.decimals),
+        contracts.data.buySlope = new BigNumber(buySlopeNum).div(buySlopeDen),
         contracts.data.initGoal = new BigNumber(initGoal).shiftedBy(-contracts.data.decimals),
         contracts.data.initReserve = new BigNumber(initReserve).shiftedBy(-contracts.data.decimals),
         contracts.data.investmentReserve = new BigNumber(investmentReserve).div(constants.BASIS_POINTS_DEN),
@@ -202,7 +199,7 @@ module.exports = class Corg {
         },
         estimateSellValue: async (tokenAmount) => {
           if (!tokenAmount) return 0;
-          const tokenValue = new BigNumber(tokenAmount).shiftedBy(contracts.data.currency.decimals);
+          const tokenValue = new BigNumber(tokenAmount).shiftedBy(contracts.data.decimals);
           try {
             const sellValue = await contracts.dat.methods.estimateSellValue(tokenValue.toFixed()).call();
             return new BigNumber(sellValue).shiftedBy(-contracts.data.decimals);
@@ -220,7 +217,7 @@ module.exports = class Corg {
           }
           const estimateSellValue = await contracts.helpers.estimateSellValue(tokenAmount);
           if (!estimateSellValue || estimateSellValue.eq(0)) throw new Error('0 expected value');
-          const tokenValue = new BigNumber(tokenAmount).shiftedBy(contracts.data.currency.decimals).dp(0);
+          const tokenValue = new BigNumber(tokenAmount).shiftedBy(contracts.data.decimals).dp(0);
           let minSellValue = estimateSellValue.times(new BigNumber(100).minus(maxSlipPercent).div(100)).shiftedBy(contracts.data.decimals).dp(0);
           if(minSellValue.lt(1)) {
             minSellValue = new BigNumber(1);
@@ -244,7 +241,7 @@ module.exports = class Corg {
           return await contracts.sendTx(contracts.dat.methods.pay(sendTo, currencyValue.toFixed()));
         },
         burn: async (tokenAmount) => {
-          const tokenValue = new BigNumber(tokenAmount).shiftedBy(contracts.data.currency.decimals).dp(0);
+          const tokenValue = new BigNumber(tokenAmount).shiftedBy(contracts.data.decimals).dp(0);
           return await contracts.sendTx(contracts.dat.methods.burn(tokenValue.toFixed()));
         },
       };
