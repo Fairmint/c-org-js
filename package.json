@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint . --fix",
-    "lintNoFix": "eslint ."
+    "lintNoFix": "eslint .",
+    "test": "truffle test"
   },
   "license": "MIT",
   "dependencies": {
@@ -13,6 +14,10 @@
     "bignumber.js": "9.0.0",
     "c-org-abi": "1.1.1",
     "core-js": "2.6.9",
+    "eslint-plugin-mocha": "^6.1.1",
+    "hardlydifficult-test-helpers": "^0.4.0",
+    "truffle": "^5.0.37",
+    "truffle-assertions": "^0.9.1",
     "web3": "1.2.1"
   },
   "devDependencies": {

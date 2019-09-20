@@ -1,10 +1,10 @@
-import Web3 from 'web3';
-import abi from 'c-org-abi/abi.json';
-import BigNumber from 'bignumber.js';
-import networks from './networks.js';
-import constants from './constants';
+const Web3 = require('web3');
+const abi = require('c-org-abi/abi.json');
+const BigNumber = require('bignumber.js');
+const networks = require('./networks.js');
+const constants = require('./constants');
 
-export default class Corg {
+module.exports = class Corg {
   async _getContractsFrom(network, oldWeb3, address) {
     try {
       let isNetworkMatch = false;
@@ -23,51 +23,22 @@ export default class Corg {
           isNetworkMatch = true;
         }
       } catch (e) {
+        console.log(e)
         // ignore
       }
       const networkName = networks[network].name;
-      let fairContract = new web3.eth.Contract(abi.fair, address);
 
-      const [decimals, datAddress] = await Promise.all([
-        fairContract.methods.decimals().call(),
-        fairContract.methods.datAddress().call(),
-      ]);
-
-      try {
-        if (decimals > 0) {
-          if (datAddress !== web3.utils.padLeft(0, 40)) {
-            const datContract = new web3.eth.Contract(abi.dat, datAddress);
-            const currencyAddress = await datContract.methods.currencyAddress().call();
-            const currency = currencyAddress ? new web3.eth.Contract(abi.erc20, currencyAddress) : null;
-            const erc1404 = new web3.eth.Contract(abi.erc1404, await fairContract.methods.erc1404Address().call());
-            return {
-              web3, isNetworkMatch, networkName, dat: datContract, fair: fairContract, currency, erc1404,
-            };
-          }
-        }
+      const datContract = new web3.eth.Contract(abi.dat, address);
+      const currencyAddress = await datContract.methods.currencyAddress().call()
+      const currency = currencyAddress ? new web3.eth.Contract(abi.erc20, currencyAddress) : null;
+        const whitelist = new web3.eth.Contract(abi.whitelist, await datContract.methods.whitelistAddress().call());
+        return {
+          web3, isNetworkMatch, networkName, dat: datContract, currency, whitelist,
+        };
       } catch (e) {
-      // ignore
+        console.log(e)
+        // ignore
       }
-      try {
-        const datContract = new web3.eth.Contract(abi.dat, address);
-        const [fairAddress, currencyAddress] = await Promise.all([
-          datContract.methods.fairAddress().call(),
-          datContract.methods.currencyAddress().call(),
-        ]);
-        const currency = currencyAddress ? new web3.eth.Contract(abi.erc20, currencyAddress) : null;
-        if (fairAddress !== web3.utils.padLeft(0, 40)) {
-          fairContract = new web3.eth.Contract(abi.fair, fairAddress);
-          const erc1404 = new web3.eth.Contract(abi.erc1404, await fairContract.methods.erc1404Address().call());
-          return {
-            web3, isNetworkMatch, networkName, dat: datContract, fair: fairContract, currency, erc1404,
-          };
-        }
-      } catch (e) {
-      // ignore
-      }
-    } catch (e) {
-    // ignore
-    }
   }
 
   async _getContracts(oldWeb3, address) {
@@ -87,6 +58,7 @@ export default class Corg {
 
   async getContracts(web3, address) {
     const contracts = await this._getContracts(web3, address);
+    console.log(contracts)
     if (contracts) {
       {
         const [
