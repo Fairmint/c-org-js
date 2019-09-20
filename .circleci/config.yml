@@ -13,6 +13,7 @@ jobs:
       - run: npm i
       
       - run: npm run lintNoFix
+      - run: npm run test
 
       # save checkout & build
       - persist_to_workspace:
