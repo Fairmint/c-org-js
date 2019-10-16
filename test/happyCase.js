@@ -1,4 +1,4 @@
-const { tokens, protocols } = require('hardlydifficult-test-helpers');
+const { tokens, protocols } = require('hardlydifficult-ethereum-contracts');
 const Corg = require('../index');
 
 contract('protocols / c-org', (accounts) => {
