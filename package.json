@@ -11,9 +11,9 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@fairmint/c-org-abi": "1.2.0",
     "babel-runtime": "6.26.0",
     "bignumber.js": "9.0.0",
-    "c-org-abi": "1.1.1",
     "core-js": "2.6.9",
     "hardlydifficult-test-helpers": "0.4.0",
     "truffle": "5.0.37",
