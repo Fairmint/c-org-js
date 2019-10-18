@@ -24,7 +24,7 @@ contract('protocols / c-org', (accounts) => {
       investmentReserveBasisPoints: '1000',
       revenueCommitementBasisPoints: '1000',
       feeBasisPoints: '0',
-      burnThresholdBasisPoints: '0',
+      autoBurn: false,
       minInvestment: '1',
       openUntilAtLeast: '0',
       name: 'FAIR token',

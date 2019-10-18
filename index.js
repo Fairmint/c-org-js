@@ -1,5 +1,5 @@
 const Web3 = require('web3');
-const abi = require('c-org-abi/abi.json');
+const abi = require('@fairmint/c-org-abi/abi.json');
 const BigNumber = require('bignumber.js');
 const networks = require('./networks.js');
 const constants = require('./constants');
@@ -135,7 +135,7 @@ module.exports = class Corg {
             beneficiary,
             control,
             feeCollector,
-            burnThreshold,
+            autoBurn,
             buybackReserve,
             fee,
             minInvestment,
@@ -149,7 +149,7 @@ module.exports = class Corg {
             contracts.dat.methods.beneficiary().call(),
             contracts.dat.methods.control().call(),
             contracts.dat.methods.feeCollector().call(),
-            contracts.dat.methods.burnThresholdBasisPoints().call(),
+            contracts.dat.methods.autoBurn().call(),
             contracts.dat.methods.buybackReserve().call(),
             contracts.dat.methods.feeBasisPoints().call(),
             contracts.dat.methods.minInvestment().call(),
@@ -164,7 +164,7 @@ module.exports = class Corg {
           contracts.data.beneficiary = beneficiary;
           contracts.data.control = control;
           contracts.data.feeCollector = feeCollector;
-          contracts.data.burnThreshold = new BigNumber(burnThreshold).div(constants.BASIS_POINTS_DEN);
+          contracts.data.autoBurn = autoBurn;
           contracts.data.buybackReserve = new BigNumber(buybackReserve).shiftedBy(-contracts.data.currency.decimals);
           contracts.data.fee = new BigNumber(fee).div(constants.BASIS_POINTS_DEN);
           contracts.data.minInvestment = new BigNumber(minInvestment).shiftedBy(-contracts.data.currency.decimals);
