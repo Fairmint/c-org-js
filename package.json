@@ -15,20 +15,20 @@
     "babel-runtime": "6.26.0",
     "bignumber.js": "9.0.0",
     "core-js": "2.6.9",
-    "hardlydifficult-ethereum-contracts": "0.5.5",
-    "truffle": "5.0.37",
+    "hardlydifficult-ethereum-contracts": "0.6.0",
+    "truffle": "5.0.41",
     "truffle-assertions": "0.9.1",
     "web3": "1.2.1"
   },
   "devDependencies": {
-    "eslint": "6.2.2",
+    "eslint": "6.5.1",
     "eslint-config-airbnb-base": "14.0.0",
     "eslint-plugin-markdown": "1.0.0",
-    "eslint-plugin-mocha": "6.1.1",
+    "eslint-plugin-mocha": "6.2.0",
     "eslint-plugin-html": "6.0.0",
     "eslint-plugin-import": "2.18.2",
     "eslint-plugin-json": "1.4.0",
-    "eslint-plugin-prettier": "3.1.0",
-    "ganache-cli": "6.6.0"
+    "eslint-plugin-prettier": "3.1.1",
+    "ganache-cli": "6.7.0"
   }
 }
