@@ -17,13 +17,13 @@
     "core-js": "2.6.9",
     "hardlydifficult-ethereum-contracts": "0.6.0",
     "truffle": "5.0.41",
-    "truffle-assertions": "0.9.1",
+    "truffle-assertions": "0.9.2",
     "web3": "1.2.1"
   },
   "devDependencies": {
     "eslint": "6.5.1",
     "eslint-config-airbnb-base": "14.0.0",
-    "eslint-plugin-markdown": "1.0.0",
+    "eslint-plugin-markdown": "1.0.1",
     "eslint-plugin-mocha": "6.2.0",
     "eslint-plugin-html": "6.0.0",
     "eslint-plugin-import": "2.18.2",

@@ -1,5 +1,5 @@
 const { tokens, protocols } = require('hardlydifficult-ethereum-contracts');
-const Corg = require('../index');
+const { Corg, Networks } = require('../index');
 
 contract('protocols / c-org', (accounts) => {
   const beneficiary = accounts[0];
@@ -33,7 +33,7 @@ contract('protocols / c-org', (accounts) => {
       beneficiary,
       feeCollector
     });
-    const corg = new Corg()
+    const corg = new Corg(Networks.filter(n => n.name === 'local'))
     cOrgLibrary = await corg.getContracts(web3, contracts.dat.address);
     await cOrgLibrary.helpers.refreshOrgInfo();
   });
