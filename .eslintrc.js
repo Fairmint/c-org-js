@@ -1,28 +1,32 @@
 module.exports = {
-    plugins: ['mocha'],
-    globals: {
-      it: true,
-      artifacts: true,
-      contract: true,
-      describe: true,
-      before: true,
-      beforeEach: true,
-      web3: true,
-      assert: true,
-      abi: true,
-      after: true,
-      afterEach: true
-    },
-    "parserOptions": {
-        "ecmaVersion": 2017,
-        "sourceType": "module",
-    },
-    "env": {
-        "es6": true
-    },
-    rules: {
-      'mocha/no-exclusive-tests': 'error',
-      'jest/prefer-expect-assertions': 0, // Smart contract tests are using mocha...
-    },
+  env: {
+    commonjs: true,
+    es6: true,
+    node: true
+  },
+  extends: ["plugin:prettier/recommended", "eslint:recommended"],
+  globals: {
+    Atomics: "readonly",
+    SharedArrayBuffer: "readonly",
+    artifacts: "readonly",
+    contract: "readonly",
+    it: "readonly",
+    assert: "readonly",
+    after: "readonly",
+    before: "readonly",
+    beforeEach: "readonly",
+    afterEach: "readonly",
+    describe: "readonly",
+    web3: "readonly",
+    context: "readonly"
+  },
+  parserOptions: {
+    ecmaVersion: 2018
+  },
+  rules: {
+    "no-underscore-dangle": 0,
+    "no-console": 0,
+    "require-atomic-updates": 0,
+    "no-unused-vars": 0
   }
-  
+};
