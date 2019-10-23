@@ -10,9 +10,5 @@ module.exports = [
   {
     name: "ropsten",
     provider: "wss://ropsten.infura.io/ws/v3/c13019f552f542188c0b0cdfaeb76cc4"
-  },
-  {
-    name: "rinkeby",
-    provider: "wss://rinkeby.infura.io/ws/v3/c13019f552f542188c0b0cdfaeb76cc4"
   }
 ];

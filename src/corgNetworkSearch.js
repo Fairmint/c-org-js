@@ -24,14 +24,17 @@ async function _isNativeANetworkMatch(network, nativeWeb3) {
 
 async function _getContractsFrom(network, nativeWeb3, address) {
   try {
-    let web3 = new Web3(network.provider);
+    const isNetworkMatch = await _isNativeANetworkMatch(network, nativeWeb3);
+    let web3;
+    if (isNetworkMatch) {
+      web3 = new Web3(nativeWeb3.currentProvider);
+    } else {
+      web3 = new Web3(network.provider);
+    }
     const datContract = new web3.eth.Contract(abi.dat, address);
 
-    let [isNetworkMatch] = await Promise.all([
-      _isNativeANetworkMatch(network, nativeWeb3),
-      // This call is just a probe to check if this is potentially a valid DAT contract
-      datContract.methods.currencyAddress().call()
-    ]);
+    // This call is just a probe to check if this is potentially a valid DAT contract
+    await datContract.methods.currencyAddress().call();
 
     return new CorgContracts(web3, address, {
       isNetworkMatch,
