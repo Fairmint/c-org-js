@@ -27,7 +27,7 @@ async function _getContractsFrom(network, nativeWeb3, address) {
     const isNetworkMatch = await _isNativeANetworkMatch(network, nativeWeb3);
     let web3;
     if (isNetworkMatch) {
-      web3 = new Web3(nativeWeb3.provider);
+      web3 = new Web3(nativeWeb3.currentProvider);
     } else {
       web3 = new Web3(network.provider);
     }
