@@ -36,9 +36,12 @@ module.exports = class CorgContracts {
     ]);
     this.currency =
       currencyAddress && currencyAddress !== this.web3.utils.padLeft(0, 40)
-        ? new web3.eth.Contract(abi.erc20, currencyAddress)
+        ? new this.web3.eth.Contract(abi.erc20, currencyAddress)
         : null;
-    this.whitelist = new web3.eth.Contract(abi.whitelist, whitelistAddress);
+    this.whitelist = new this.web3.eth.Contract(
+      abi.whitelist,
+      whitelistAddress
+    );
 
     const [
       decimals,
