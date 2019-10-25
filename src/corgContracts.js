@@ -92,7 +92,9 @@ module.exports = class CorgContracts {
       }
     };
 
-    this.data.buySlope = new BigNumber(buySlopeNum).div(buySlopeDen);
+    this.data.buySlope = new BigNumber(buySlopeNum)
+      .shiftedBy(18 + 18 - this.data.currency.decimals)
+      .div(buySlopeDen);
     this.data.initGoal = new BigNumber(initGoal).shiftedBy(-this.data.decimals);
     this.data.initReserve = new BigNumber(initReserve).shiftedBy(
       -this.data.decimals
