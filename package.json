@@ -11,7 +11,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@fairmint/c-org-abi": "1.2.2",
+    "@fairmint/c-org-abi": "1.2.4",
     "babel-runtime": "6.26.0",
     "bignumber.js": "9.0.0",
     "core-js": "2.6.9",

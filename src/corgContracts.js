@@ -2,6 +2,24 @@ const abi = require("@fairmint/c-org-abi/abi.json");
 const BigNumber = require("bignumber.js");
 const constants = require("./constants");
 
+function mergeDeDupe(arr) {
+  // Flatten array of arrays of objects into an array of objects
+  const data = [...new Set([].concat(...arr))];
+
+  // De-dupe results
+  const obj = {};
+  for (const entry of data) {
+    obj[JSON.stringify(entry)] = entry;
+  }
+
+  // And push back into an array
+  const results = [];
+  for (const key in obj) {
+    results.push(obj[key]);
+  }
+  return results;
+}
+
 module.exports = class CorgContracts {
   /**
    * @param {object} web3 Expecting a web3 1.0 object.
@@ -145,6 +163,13 @@ module.exports = class CorgContracts {
     );
     this.data.openUntilAtLeast = openUntilAtLeast;
     this.data.state = constants.STATES[stateId];
+
+    // Live FAIR price. The price of the last transaction. For the preview, we can
+    // safely calculate it with (total_supply+burnt_supply)*buy_slope. We can use
+    // Web3.js directly to get it.
+    this.data.liveFAIRPrice = this.data.totalSupply
+      .plus(this.data.burnedSupply)
+      .times(this.data.buySlope);
   }
 
   /**
@@ -301,5 +326,66 @@ module.exports = class CorgContracts {
       .shiftedBy(this.data.decimals)
       .dp(0);
     return await this._sendTx(this.dat.methods.burn(tokenValue.toFixed()));
+  }
+
+  /**
+   * Gets all events involving the given account.
+   * Events: Approval owner/spender, Transfer from/to, Buy from/to, Sell from/to, and/or Pay from/to
+   */
+  async getPastEventsForAccount(account) {
+    return mergeDeDupe(
+      await Promise.all([
+        this.dat.getPastEvents("Transfer", {
+          filter: {
+            _to: account
+          }
+        }),
+        this.dat.getPastEvents("Transfer", {
+          filter: {
+            _from: account
+          }
+        }),
+        this.dat.getPastEvents("Approval", {
+          filter: {
+            _owner: account
+          }
+        }),
+        this.dat.getPastEvents("Approval", {
+          filter: {
+            _spender: account
+          }
+        }),
+        this.dat.getPastEvents("Buy", {
+          filter: {
+            _from: account
+          }
+        }),
+        this.dat.getPastEvents("Buy", {
+          filter: {
+            _to: account
+          }
+        }),
+        this.dat.getPastEvents("Sell", {
+          filter: {
+            _from: account
+          }
+        }),
+        this.dat.getPastEvents("Sell", {
+          filter: {
+            _to: account
+          }
+        }),
+        this.dat.getPastEvents("Pay", {
+          filter: {
+            _from: account
+          }
+        }),
+        this.dat.getPastEvents("Pay", {
+          filter: {
+            _to: account
+          }
+        })
+      ])
+    );
   }
 };
