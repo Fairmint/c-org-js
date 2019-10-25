@@ -1,6 +1,6 @@
 {
   "name": "@fairmint/c-org-js",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "c-org javascript library.",
   "main": "index.js",
   "scripts": {

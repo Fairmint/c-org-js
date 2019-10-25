@@ -63,7 +63,7 @@ contract("getPastEvents", accounts => {
       }
     });
 
-    it.only("getPastEvents", async () => {
+    it("getPastEvents", async () => {
       console.log(
         await corg.getPastEventsForAccount(corg.data.account.address)
       );
