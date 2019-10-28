@@ -52,5 +52,5 @@ contract("token", accounts => {
   it("text reads the same via c-org-js", async () => {
     assert.equal(corg.data.currency.symbol, await usdc.symbol());
     assert.equal(corg.data.currency.name, await usdc.name());
-  })
+  });
 });
