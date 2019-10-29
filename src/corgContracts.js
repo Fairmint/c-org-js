@@ -272,18 +272,20 @@ module.exports = class CorgContracts {
     }
   }
   async sell(tokenAmount, maxSlipPercent, sendToAddress = undefined) {
+    tokenAmount = new BigNumber(tokenAmount);
     let sendTo;
     if (sendToAddress && sendToAddress !== this.web3.utils.padLeft(0, 40)) {
       sendTo = sendToAddress;
     } else {
       sendTo = this.data.account.address;
     }
-    const estimateSellValue = await this.estimateSellValue(tokenAmount);
-    if (!estimateSellValue || estimateSellValue.eq(0))
+    const estimateSellValue = await this.estimateSellValue(
+      tokenAmount.toFixed()
+    );
+    if (!estimateSellValue || estimateSellValue.eq(0)) {
       throw new Error("0 expected value");
-    const tokenValue = new BigNumber(tokenAmount)
-      .shiftedBy(this.data.decimals)
-      .dp(0);
+    }
+    const tokenValue = tokenAmount.shiftedBy(this.data.decimals).dp(0);
     let minSellValue = estimateSellValue
       .times(new BigNumber(100).minus(maxSlipPercent).div(100))
       .shiftedBy(this.data.decimals)
@@ -301,22 +303,22 @@ module.exports = class CorgContracts {
   }
   async estimatePayValue(currencyAmount) {
     if (!currencyAmount) return 0;
-    const currencyValue = new BigNumber(currencyAmount).shiftedBy(
-      this.data.currency.decimals
-    );
+    currencyAmount = new BigNumber(currencyAmount);
+    const currencyValue = currencyAmount.shiftedBy(this.data.currency.decimals);
     const payValue = await this.dat.methods
       .estimatePayValue(currencyValue.toFixed())
       .call();
     return new BigNumber(payValue).shiftedBy(-this.data.decimals);
   }
   async pay(currencyAmount, sendToAddress = undefined) {
+    currencyAmount = new BigNumber(currencyAmount);
     let sendTo;
     if (sendToAddress && sendToAddress !== this.web3.utils.padLeft(0, 40)) {
       sendTo = sendToAddress;
     } else {
       sendTo = this.data.account.address;
     }
-    const currencyValue = new BigNumber(currencyAmount)
+    const currencyValue = currencyAmount
       .shiftedBy(this.data.currency.decimals)
       .dp(0);
     return await this._sendTx(
