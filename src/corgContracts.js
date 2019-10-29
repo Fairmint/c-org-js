@@ -64,6 +64,9 @@ module.exports = class CorgContracts {
     let currencyName, currencySymbol;
 
     try {
+      // This reverts the ABI just in case it was previously changed in memory
+      abi.erc20.find(e => e.name === "name").outputs[0].type = "string";
+      abi.erc20.find(e => e.name === "symbol").outputs[0].type = "string";
       [currencyName, currencySymbol] = await Promise.all([
         this.currency ? this.currency.methods.name().call() : "Ether",
         this.currency ? this.currency.methods.symbol().call() : "ETH"
@@ -77,8 +80,8 @@ module.exports = class CorgContracts {
         this.currency.methods.name().call(),
         this.currency.methods.symbol().call()
       ]);
-      currencyName = this.web3.utils.hexToUtf8(currencyName);
       currencySymbol = this.web3.utils.hexToUtf8(currencySymbol);
+      currencyName = this.web3.utils.hexToUtf8(currencyName);
     }
 
     const [

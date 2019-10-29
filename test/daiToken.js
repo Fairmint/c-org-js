@@ -41,12 +41,18 @@ contract("daiToken", accounts => {
   });
 
   it("text reads as expected from the contract directly", async () => {
-    assert.equal(await dai.symbol(), "DAI");
-    assert.equal(await dai.name(), "");
+    assert.equal(
+      await dai.symbol(),
+      "0x4441490000000000000000000000000000000000000000000000000000000000"
+    );
+    assert.equal(
+      await dai.name(),
+      "0x0000000000000000000000000000000000000000000000000000000000000000"
+    );
   });
 
-  it("text reads the same via c-org-js", async () => {
-    assert.equal(corg.data.currency.symbol, await dai.symbol());
-    assert.equal(corg.data.currency.name, await dai.name());
+  it("text reads as expected from c-org-js", async () => {
+    assert.equal(corg.data.currency.symbol, "DAI");
+    assert.equal(corg.data.currency.name, "");
   });
 });
