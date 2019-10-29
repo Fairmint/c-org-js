@@ -59,7 +59,7 @@ contract("getPastEvents", accounts => {
       }
       for (let i = 2; i <= 4; i++) {
         await corg.refreshAccountInfo(accounts[i]); // switch to test account
-        await corg.sell(corg.data.account.balance, 100);
+        await corg.sell(corg.data.account.fairBalance, 100);
       }
     });
 
