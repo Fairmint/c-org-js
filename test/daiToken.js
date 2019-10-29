@@ -2,27 +2,23 @@ const Web3 = require("web3");
 const { tokens, protocols } = require("hardlydifficult-ethereum-contracts");
 const { CorgContracts } = require("../index");
 
-contract("token", accounts => {
-  let usdc;
+contract("daiToken", accounts => {
+  let dai;
   let corg;
 
   beforeEach(async () => {
-    // Deploy a USDC contract for testing
-    usdc = await tokens.usdc.deploy(
-      web3,
-      accounts[accounts.length - 1],
-      accounts[0]
-    );
+    // Deploy a DAI contract for testing
+    dai = await tokens.dai.deploy(web3, accounts[0]);
     // Mint test tokens
     for (let i = 0; i < accounts.length - 1; i++) {
-      await usdc.mint(accounts[i], "1000000000000000000000000", {
+      await dai.mint(accounts[i], "1000000000000000000000000", {
         from: accounts[0]
       });
     }
 
     const contracts = await protocols.cOrg.deploy(web3, {
       initReserve: "42000000000000000000",
-      currency: usdc.address,
+      currency: dai.address,
       initGoal: "0",
       buySlopeNum: "1",
       buySlopeDen: "100000000000000000000000000000000",
@@ -45,12 +41,18 @@ contract("token", accounts => {
   });
 
   it("text reads as expected from the contract directly", async () => {
-    assert.equal(await usdc.symbol(), "USDC");
-    assert.equal(await usdc.name(), "USD//C");
+    assert.equal(
+      await dai.symbol(),
+      "0x4441490000000000000000000000000000000000000000000000000000000000"
+    );
+    assert.equal(
+      await dai.name(),
+      "0x0000000000000000000000000000000000000000000000000000000000000000"
+    );
   });
 
-  it("text reads the same via c-org-js", async () => {
-    assert.equal(corg.data.currency.symbol, await usdc.symbol());
-    assert.equal(corg.data.currency.name, await usdc.name());
+  it("text reads as expected from c-org-js", async () => {
+    assert.equal(corg.data.currency.symbol, "DAI");
+    assert.equal(corg.data.currency.name, "");
   });
 });
