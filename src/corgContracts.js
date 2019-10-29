@@ -61,11 +61,29 @@ module.exports = class CorgContracts {
       whitelistAddress
     );
 
+    let currencyName, currencySymbol;
+
+    try {
+      [currencyName, currencySymbol] = await Promise.all([
+        this.currency ? this.currency.methods.name().call() : "Ether",
+        this.currency ? this.currency.methods.symbol().call() : "ETH"
+      ]);
+    } catch (e) {
+      // Some tokens, such as DAI, return bytes32 instead of a string
+      abi.erc20.find(e => e.name === "name").outputs[0].type = "bytes32";
+      abi.erc20.find(e => e.name === "symbol").outputs[0].type = "bytes32";
+      this.currency = new this.web3.eth.Contract(abi.erc20, currencyAddress);
+      [currencyName, currencySymbol] = await Promise.all([
+        this.currency.methods.name().call(),
+        this.currency.methods.symbol().call()
+      ]);
+      currencyName = this.web3.utils.hexToUtf8(currencyName);
+      currencySymbol = this.web3.utils.hexToUtf8(currencySymbol);
+    }
+
     const [
       decimals,
       currencyDecimals,
-      currencyName,
-      currencySymbol,
       buySlopeNum,
       buySlopeDen,
       initGoal,
@@ -74,8 +92,6 @@ module.exports = class CorgContracts {
     ] = await Promise.all([
       this.dat.methods.decimals().call(),
       this.currency ? this.currency.methods.decimals().call() : 18,
-      this.currency ? this.currency.methods.name().call() : "Ether",
-      this.currency ? this.currency.methods.symbol().call() : "ETH",
       this.dat.methods.buySlopeNum().call(),
       this.dat.methods.buySlopeDen().call(),
       this.dat.methods.initGoal().call(),

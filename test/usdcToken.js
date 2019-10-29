@@ -2,7 +2,7 @@ const Web3 = require("web3");
 const { tokens, protocols } = require("hardlydifficult-ethereum-contracts");
 const { CorgContracts } = require("../index");
 
-contract("token", accounts => {
+contract("usdcToken", accounts => {
   let usdc;
   let corg;
 
