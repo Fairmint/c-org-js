@@ -190,7 +190,8 @@ module.exports = class CorgContracts {
     // Web3.js directly to get it.
     this.data.liveFAIRPrice = this.data.totalSupply
       .plus(this.data.burnedSupply)
-      .times(this.data.buySlope);
+      .times(this.data.buySlope)
+      .div(2);
   }
 
   /**
