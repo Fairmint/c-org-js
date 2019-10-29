@@ -50,16 +50,16 @@ contract("getPastEvents", accounts => {
 
   describe("once approved", () => {
     beforeEach(async () => {
-      await corg.refreshAccountInfo(accounts[1]); // switch to control
-      await corg.kyc(accounts[3]);
-      await corg.refreshAccountInfo(accounts[3]); // switch to test account
-      await corg.approve();
-
-      for (let i = 1; i <= 10; i++) {
-        await corg.buy(i, 100);
+      for (let i = 2; i < accounts.length - 1; i++) {
+        await corg.refreshAccountInfo(accounts[1]); // switch to control
+        await corg.kyc(accounts[i]);
+        await corg.refreshAccountInfo(accounts[i]); // switch to test account
+        await corg.approve();
+        await corg.buy("100", 100);
       }
-      for (let i = 1; i <= 2; i++) {
-        await corg.sell(i, 100);
+      for (let i = 2; i <= 4; i++) {
+        await corg.refreshAccountInfo(accounts[i]); // switch to test account
+        await corg.sell(corg.data.account.fairBalance, 100);
       }
     });
 
