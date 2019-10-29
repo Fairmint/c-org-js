@@ -52,10 +52,10 @@ contract("getPastEvents", accounts => {
     beforeEach(async () => {
       for (let i = 2; i < accounts.length; i++) {
         await corg.refreshAccountInfo(accounts[1]); // switch to control
-        await corg.kyc(accounts[3]);
+        await corg.kyc(accounts[i]);
         await corg.refreshAccountInfo(accounts[i]); // switch to test account
         await corg.approve();
-        await corg.buy("1000000000000000000000", 100);
+        await corg.buy("100", 100);
       }
       for (let i = 2; i <= 4; i++) {
         await corg.refreshAccountInfo(accounts[i]); // switch to test account
