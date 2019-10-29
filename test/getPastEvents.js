@@ -50,7 +50,7 @@ contract("getPastEvents", accounts => {
 
   describe("once approved", () => {
     beforeEach(async () => {
-      for (let i = 2; i < accounts.length; i++) {
+      for (let i = 2; i < accounts.length - 1; i++) {
         await corg.refreshAccountInfo(accounts[1]); // switch to control
         await corg.kyc(accounts[i]);
         await corg.refreshAccountInfo(accounts[i]); // switch to test account
