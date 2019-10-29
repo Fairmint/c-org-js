@@ -186,8 +186,7 @@ module.exports = class CorgContracts {
     this.data.state = constants.STATES[stateId];
 
     // Live FAIR price. The price of the last transaction. For the preview, we can
-    // safely calculate it with (total_supply+burnt_supply)*buy_slope/2. We can use
-    // Web3.js directly to get it.
+    // safely calculate it with (total_supply+burnt_supply)*buy_slope/2.
     this.data.liveFAIRPrice = this.data.totalSupply
       .plus(this.data.burnedSupply)
       .times(this.data.buySlope)
