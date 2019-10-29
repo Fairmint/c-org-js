@@ -186,11 +186,17 @@ module.exports = class CorgContracts {
     this.data.state = constants.STATES[stateId];
 
     // Live FAIR price. The price of the last transaction. For the preview, we can
-    // safely calculate it with (total_supply+burnt_supply)*buy_slope/2.
-    this.data.liveFAIRPrice = this.data.totalSupply
-      .plus(this.data.burnedSupply)
-      .times(this.data.buySlope)
-      .div(2);
+    // safely calculate it with (total_supply+burnt_supply)*buy_slope durning RUN (or CLOSE).
+    // price=init_goal*buy_slope/2 during INIT (or CANCEL)
+    if (this.data.state === "INIT" || this.data.state === "CANCEL") {
+      this.data.liveFAIRPrice = this.data.initGoal
+        .times(this.data.buySlope)
+        .div(2);
+    } else {
+      this.data.liveFAIRPrice = this.data.totalSupply
+        .plus(this.data.burnedSupply)
+        .times(this.data.buySlope);
+    }
   }
 
   /**
