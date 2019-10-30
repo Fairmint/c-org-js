@@ -298,17 +298,19 @@ module.exports = class CorgContracts {
   }
   async sell(tokenAmount, maxSlipPercent, sendToAddress = undefined) {
     tokenAmount = new BigNumber(tokenAmount);
+    const estimateSellValue = await this.estimateSellValue(
+      tokenAmount.toFixed()
+    );
+    if (!estimateSellValue || estimateSellValue.eq(0)) {
+      throw new Error(
+        `0 expected value from sell(${tokenAmount.toFixed()}, ${maxSlipPercent}, ${sendToAddress})`
+      );
+    }
     let sendTo;
     if (sendToAddress && sendToAddress !== this.web3.utils.padLeft(0, 40)) {
       sendTo = sendToAddress;
     } else {
       sendTo = this.data.account.address;
-    }
-    const estimateSellValue = await this.estimateSellValue(
-      tokenAmount.toFixed()
-    );
-    if (!estimateSellValue || estimateSellValue.eq(0)) {
-      throw new Error("0 expected value");
     }
     const tokenValue = tokenAmount.shiftedBy(this.data.decimals).dp(0);
     let minSellValue = estimateSellValue
@@ -362,59 +364,72 @@ module.exports = class CorgContracts {
    * Events: Approval owner/spender, Transfer from/to, Buy from/to, Sell from/to, and/or Pay from/to
    */
   async getPastEventsForAccount(account) {
-    return mergeDeDupe(
-      await Promise.all([
-        this.dat.getPastEvents("Transfer", {
-          filter: {
-            _to: account
-          }
+    const promises = [
+      this.dat.getPastEvents("Transfer", {
+        filter: {
+          _to: account
+        }
+      }),
+      this.dat.getPastEvents("Transfer", {
+        filter: {
+          _from: account
+        }
+      }),
+      this.dat.getPastEvents("Approval", {
+        filter: {
+          _owner: account
+        }
+      }),
+      this.dat.getPastEvents("Approval", {
+        filter: {
+          _spender: account
+        }
+      }),
+      this.dat.getPastEvents("Buy", {
+        filter: {
+          _from: account
+        }
+      }),
+      this.dat.getPastEvents("Buy", {
+        filter: {
+          _to: account
+        }
+      }),
+      this.dat.getPastEvents("Sell", {
+        filter: {
+          _from: account
+        }
+      }),
+      this.dat.getPastEvents("Sell", {
+        filter: {
+          _to: account
+        }
+      }),
+      this.dat.getPastEvents("Pay", {
+        filter: {
+          _from: account
+        }
+      }),
+      this.dat.getPastEvents("Pay", {
+        filter: {
+          _to: account
+        }
+      })
+    ];
+
+    if (this.currency) {
+      promises.push(
+        this.currency.getPastEvents("Transfer", { filter: { from: account } }),
+        this.currency.getPastEvents("Transfer", { filter: { to: account } }),
+        this.currency.getPastEvents("Approval", {
+          filter: { owner: account }
         }),
-        this.dat.getPastEvents("Transfer", {
-          filter: {
-            _from: account
-          }
-        }),
-        this.dat.getPastEvents("Approval", {
-          filter: {
-            _owner: account
-          }
-        }),
-        this.dat.getPastEvents("Approval", {
-          filter: {
-            _spender: account
-          }
-        }),
-        this.dat.getPastEvents("Buy", {
-          filter: {
-            _from: account
-          }
-        }),
-        this.dat.getPastEvents("Buy", {
-          filter: {
-            _to: account
-          }
-        }),
-        this.dat.getPastEvents("Sell", {
-          filter: {
-            _from: account
-          }
-        }),
-        this.dat.getPastEvents("Sell", {
-          filter: {
-            _to: account
-          }
-        }),
-        this.dat.getPastEvents("Pay", {
-          filter: {
-            _from: account
-          }
-        }),
-        this.dat.getPastEvents("Pay", {
-          filter: {
-            _to: account
-          }
+        this.currency.getPastEvents("Approval", {
+          filter: { spender: account }
         })
-      ])
-    );
+      );
+    }
+
+    return mergeDeDupe(await Promise.all(promises));
   }
 };
