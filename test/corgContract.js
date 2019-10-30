@@ -53,6 +53,10 @@ contract("corgContract", accounts => {
     assert.equal(corg.data.account.fairBalance.toFixed(), "0");
   });
 
+  it("Defaults to Infinity market sentiment", async () => {
+    assert.equal(corg.data.marketSentiment.toFixed(), "Infinity");
+  });
+
   describe("once approved", () => {
     beforeEach(async () => {
       await corg.refreshAccountInfo(accounts[1]); // switch to control
@@ -66,6 +70,11 @@ contract("corgContract", accounts => {
     it("Can buy fair", async () => {
       await corg.refreshAccountInfo(accounts[3]);
       assert.equal(corg.data.account.fairBalance.toFixed(), "2.3170396123");
+    });
+
+    it("Now has a valid market sentiment", async () => {
+      await corg.refreshOrgInfo();
+      assert.notEqual(corg.data.marketSentiment.toFixed(), "Infinity");
     });
 
     describe("pay", () => {
