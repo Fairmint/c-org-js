@@ -298,17 +298,19 @@ module.exports = class CorgContracts {
   }
   async sell(tokenAmount, maxSlipPercent, sendToAddress = undefined) {
     tokenAmount = new BigNumber(tokenAmount);
+    const estimateSellValue = await this.estimateSellValue(
+      tokenAmount.toFixed()
+    );
+    if (!estimateSellValue || estimateSellValue.eq(0)) {
+      throw new Error(
+        `0 expected value from sell(${tokenAmount.toFixed()}, ${maxSlipPercent}, ${sendToAddress})`
+      );
+    }
     let sendTo;
     if (sendToAddress && sendToAddress !== this.web3.utils.padLeft(0, 40)) {
       sendTo = sendToAddress;
     } else {
       sendTo = this.data.account.address;
-    }
-    const estimateSellValue = await this.estimateSellValue(
-      tokenAmount.toFixed()
-    );
-    if (!estimateSellValue || estimateSellValue.eq(0)) {
-      throw new Error("0 expected value");
     }
     const tokenValue = tokenAmount.shiftedBy(this.data.decimals).dp(0);
     let minSellValue = estimateSellValue
