@@ -197,6 +197,28 @@ module.exports = class CorgContracts {
         .plus(this.data.burnedSupply)
         .times(this.data.buySlope);
     }
+
+    /**
+     * Market sentiment
+     * buyback_reserve = r
+     * total_supply = t
+     * burnt_supply = b
+     * buy_slope = s
+     *
+     * source: ((t+b)*s)/((2*r/((t+b)^2))*(t+b)+((2*r/((t+b)^2))*b^2)/(2*t))
+     * alternate: s t (b + t)^3 / (r (b^2 + 2 b t + 2 t^2))
+     */
+    this.data.marketSentiment = this.data.buySlope
+      .times(this.data.totalSupply)
+      .times(this.data.burnedSupply.plus(this.data.totalSupply).pow(3))
+      .div(
+        this.data.buybackReserve.times(
+          this.data.burnedSupply
+            .pow(2)
+            .plus(this.data.burnedSupply.times(2).times(this.data.totalSupply))
+            .plus(this.data.totalSupply.pow(2).times(2))
+        )
+      );
   }
 
   /**
