@@ -417,13 +417,13 @@ module.exports = class CorgContracts {
 
     if (this.currency) {
       promises.push(
-        this.currency.getPastEvents("Transfer", { filter: { _from: account } }),
-        this.currency.getPastEvents("Transfer", { filter: { _to: account } }),
+        this.currency.getPastEvents("Transfer", { filter: { from: account } }),
+        this.currency.getPastEvents("Transfer", { filter: { to: account } }),
         this.currency.getPastEvents("Approval", {
-          filter: { _owner: account }
+          filter: { owner: account }
         }),
         this.currency.getPastEvents("Approval", {
-          filter: { _spender: account }
+          filter: { spender: account }
         })
       );
     }
