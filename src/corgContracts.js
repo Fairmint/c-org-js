@@ -312,7 +312,7 @@ module.exports = class CorgContracts {
       const sellValue = await this.dat.methods
         .estimateSellValue(tokenValue.toFixed())
         .call();
-      return new BigNumber(sellValue).shiftedBy(-this.data.decimals);
+      return new BigNumber(sellValue).shiftedBy(-this.data.currency.decimals);
     } catch (e) {
       // likely > totalSupply
       return new BigNumber(0);
@@ -337,7 +337,7 @@ module.exports = class CorgContracts {
     const tokenValue = tokenAmount.shiftedBy(this.data.decimals).dp(0);
     let minSellValue = estimateSellValue
       .times(new BigNumber(100).minus(maxSlipPercent).div(100))
-      .shiftedBy(this.data.decimals)
+      .shiftedBy(this.data.currency.decimals)
       .dp(0);
     if (minSellValue.lt(1)) {
       minSellValue = new BigNumber(1);
