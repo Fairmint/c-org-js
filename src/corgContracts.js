@@ -216,7 +216,9 @@ module.exports = class CorgContracts {
           this.data.buybackReserve.times(
             this.data.burnedSupply
               .pow(2)
-              .plus(this.data.burnedSupply.times(2).times(this.data.totalSupply))
+              .plus(
+                this.data.burnedSupply.times(2).times(this.data.totalSupply)
+              )
               .plus(this.data.totalSupply.pow(2).times(2))
           )
         );
