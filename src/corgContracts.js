@@ -208,17 +208,24 @@ module.exports = class CorgContracts {
      * source: ((t+b)*s)/((2*r/((t+b)^2))*(t+b)+((2*r/((t+b)^2))*b^2)/(2*t))
      * alternate: s t (b + t)^3 / (r (b^2 + 2 b t + 2 t^2))
      */
-    this.data.marketSentiment = this.data.buySlope
-      .times(this.data.totalSupply)
-      .times(this.data.burnedSupply.plus(this.data.totalSupply).pow(3))
-      .div(
-        this.data.buybackReserve.times(
-          this.data.burnedSupply
-            .pow(2)
-            .plus(this.data.burnedSupply.times(2).times(this.data.totalSupply))
-            .plus(this.data.totalSupply.pow(2).times(2))
-        )
-      );
+    if (this.data.state === "RUN") {
+      this.data.marketSentiment = this.data.buySlope
+        .times(this.data.totalSupply)
+        .times(this.data.burnedSupply.plus(this.data.totalSupply).pow(3))
+        .div(
+          this.data.buybackReserve.times(
+            this.data.burnedSupply
+              .pow(2)
+              .plus(
+                this.data.burnedSupply.times(2).times(this.data.totalSupply)
+              )
+              .plus(this.data.totalSupply.pow(2).times(2))
+          )
+        );
+    } else {
+      // This value should not be displayed unless in the RUN state
+      this.data.marketSentiment = null;
+    }
   }
 
   /**
