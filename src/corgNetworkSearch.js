@@ -34,7 +34,7 @@ async function _getContractsFrom(network, nativeWeb3, address) {
     const datContract = new web3.eth.Contract(abi.dat, address);
 
     // This call is just a probe to check if this is potentially a valid DAT contract
-    await datContract.methods.currencyAddress().call();
+    await datContract.methods.currency().call();
 
     return new CorgContracts(web3, address, {
       isNetworkMatch,

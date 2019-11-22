@@ -49,8 +49,8 @@ module.exports = class CorgContracts {
    */
   async init() {
     const [currencyAddress, whitelistAddress] = await Promise.all([
-      this.dat.methods.currencyAddress().call(),
-      this.dat.methods.whitelistAddress().call()
+      this.dat.methods.currency().call(),
+      this.dat.methods.whitelist().call()
     ]);
     this.currency =
       currencyAddress && currencyAddress !== this.web3.utils.padLeft(0, 40)
