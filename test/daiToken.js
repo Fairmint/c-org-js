@@ -1,5 +1,9 @@
 const Web3 = require("web3");
-const { tokens, protocols } = require("hardlydifficult-ethereum-contracts");
+const {
+  constants,
+  tokens,
+  protocols
+} = require("hardlydifficult-ethereum-contracts");
 const { CorgContracts } = require("../index");
 
 contract("daiToken", accounts => {
@@ -12,7 +16,8 @@ contract("daiToken", accounts => {
     // Mint test tokens
     for (let i = 0; i < accounts.length - 1; i++) {
       await dai.mint(accounts[i], "1000000000000000000000000", {
-        from: accounts[0]
+        from: accounts[0],
+        gas: constants.MAX_GAS
       });
     }
 
