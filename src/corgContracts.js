@@ -1,6 +1,7 @@
 const abi = require("@fairmint/c-org-abi/abi.json");
 const BigNumber = require("bignumber.js");
 const constants = require("./constants");
+const gasRequirements = require("./gasRequirements");
 
 function mergeDeDupe(arr) {
   // Flatten array of arrays of objects into an array of objects
@@ -32,13 +33,18 @@ module.exports = class CorgContracts {
     this.metadata = metadata;
   }
 
-  async _sendTx(tx) {
+  async _sendTx(tx, options) {
     return new Promise(resolve => {
-      tx.send({
-        from: this.data.account.address,
-        gas: "500000", // todo estimate gas
-        gasPrice: this.web3.utils.toWei("1.1", "Gwei")
-      }).on("transactionHash", tx => {
+      tx.send(
+        Object.assign(
+          {
+            from: this.data.account.address,
+            gas: "500000", // todo estimate gas
+            gasPrice: this.web3.utils.toWei("1.1", "Gwei")
+          },
+          options
+        )
+      ).on("transactionHash", tx => {
         resolve(tx);
       });
     });
@@ -49,8 +55,8 @@ module.exports = class CorgContracts {
    */
   async init() {
     const [currencyAddress, whitelistAddress] = await Promise.all([
-      this.dat.methods.currencyAddress().call(),
-      this.dat.methods.whitelistAddress().call()
+      this.dat.methods.currency().call(),
+      this.dat.methods.whitelist().call()
     ]);
     this.currency =
       currencyAddress && currencyAddress !== this.web3.utils.padLeft(0, 40)
@@ -269,10 +275,14 @@ module.exports = class CorgContracts {
   }
 
   async approve() {
-    await this._sendTx(this.currency.methods.approve(this.dat._address, -1));
+    await this._sendTx(this.currency.methods.approve(this.dat._address, -1), {
+      gas: gasRequirements.USDC.approve
+    });
   }
   async kyc(account, isApproved = true) {
-    await this._sendTx(this.whitelist.methods.approve(account, isApproved));
+    await this._sendTx(this.whitelist.methods.approve(account, isApproved), {
+      gas: gasRequirements.Whitelist.approve
+    });
   }
   async estimateBuyValue(currencyAmount) {
     if (!currencyAmount) return 0;
@@ -309,7 +319,10 @@ module.exports = class CorgContracts {
         sendTo,
         currencyValue.toFixed(),
         minBuyValue.toFixed()
-      )
+      ),
+      {
+        gas: gasRequirements.DecentralizedAutonomousTrust.buy
+      }
     );
   }
   async estimateSellValue(tokenAmount) {
@@ -354,7 +367,10 @@ module.exports = class CorgContracts {
         sendTo,
         tokenValue.toFixed(),
         minSellValue.toFixed()
-      )
+      ),
+      {
+        gas: gasRequirements.DecentralizedAutonomousTrust.sell
+      }
     );
   }
   async estimatePayValue(currencyAmount) {
@@ -378,14 +394,19 @@ module.exports = class CorgContracts {
       .shiftedBy(this.data.currency.decimals)
       .dp(0);
     return await this._sendTx(
-      this.dat.methods.pay(sendTo, currencyValue.toFixed())
+      this.dat.methods.pay(sendTo, currencyValue.toFixed()),
+      {
+        gas: gasRequirements.DecentralizedAutonomousTrust.pay
+      }
     );
   }
   async burn(tokenAmount) {
     const tokenValue = new BigNumber(tokenAmount)
       .shiftedBy(this.data.decimals)
       .dp(0);
-    return await this._sendTx(this.dat.methods.burn(tokenValue.toFixed()));
+    return await this._sendTx(this.dat.methods.burn(tokenValue.toFixed()), {
+      gas: gasRequirements.DecentralizedAutonomousTrust.burn
+    });
   }
 
   /**

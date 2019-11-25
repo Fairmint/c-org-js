@@ -69,7 +69,10 @@ contract("corgContract", accounts => {
 
     it("Can buy fair", async () => {
       await corg.refreshAccountInfo(accounts[3]);
-      assert.equal(corg.data.account.fairBalance.toFixed(), "2.3170396123");
+      assert.equal(
+        corg.data.account.fairBalance.toFixed(),
+        "2.317039612320676761"
+      );
     });
 
     it("Now has a valid market sentiment", async () => {
@@ -84,7 +87,10 @@ contract("corgContract", accounts => {
 
       it("Can pay the contract", async () => {
         await corg.refreshAccountInfo(accounts[3]);
-        assert.equal(corg.data.account.fairBalance.toFixed(), "2.5421149026");
+        assert.equal(
+          corg.data.account.fairBalance.toFixed(),
+          "2.542114902640175376"
+        );
       });
     });
 
@@ -95,7 +101,10 @@ contract("corgContract", accounts => {
 
       it("Can burn fair", async () => {
         await corg.refreshAccountInfo(accounts[3]);
-        assert.equal(corg.data.account.fairBalance.toFixed(), "2.2170396123");
+        assert.equal(
+          corg.data.account.fairBalance.toFixed(),
+          "2.217039612320676761"
+        );
       });
     });
 
@@ -106,7 +115,10 @@ contract("corgContract", accounts => {
 
       it("Can sell fair", async () => {
         await corg.refreshAccountInfo(accounts[3]);
-        assert.equal(corg.data.account.fairBalance.toFixed(), "1.3170396123");
+        assert.equal(
+          corg.data.account.fairBalance.toFixed(),
+          "1.317039612320676761"
+        );
       });
     });
   });
