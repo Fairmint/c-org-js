@@ -6,16 +6,16 @@ const {
 } = require("hardlydifficult-ethereum-contracts");
 const { CorgContracts } = require("../index");
 
-contract("daiToken", accounts => {
-  let dai;
+contract("saiToken", accounts => {
+  let sai;
   let corg;
 
   beforeEach(async () => {
-    // Deploy a DAI contract for testing
-    dai = await tokens.dai.deploy(web3, accounts[0]);
+    // Deploy a SAI contract for testing
+    sai = await tokens.sai.deploy(web3, accounts[0]);
     // Mint test tokens
     for (let i = 0; i < accounts.length - 1; i++) {
-      await dai.mint(accounts[i], "1000000000000000000000000", {
+      await sai.mint(accounts[i], "1000000000000000000000000", {
         from: accounts[0],
         gas: constants.MAX_GAS
       });
