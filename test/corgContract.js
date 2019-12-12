@@ -71,7 +71,7 @@ contract("corgContract", accounts => {
       await corg.refreshAccountInfo(accounts[3]);
       assert.equal(
         corg.data.account.fairBalance.toFixed(),
-        "2.317039612320676761"
+        "14.142135623730950488"
       );
     });
 
@@ -89,7 +89,7 @@ contract("corgContract", accounts => {
         await corg.refreshAccountInfo(accounts[3]);
         assert.equal(
           corg.data.account.fairBalance.toFixed(),
-          "2.542114902640175376"
+          "14.31997329894075723"
         );
       });
     });
@@ -103,7 +103,7 @@ contract("corgContract", accounts => {
         await corg.refreshAccountInfo(accounts[3]);
         assert.equal(
           corg.data.account.fairBalance.toFixed(),
-          "2.217039612320676761"
+          "14.042135623730950488"
         );
       });
     });
@@ -117,7 +117,7 @@ contract("corgContract", accounts => {
         await corg.refreshAccountInfo(accounts[3]);
         assert.equal(
           corg.data.account.fairBalance.toFixed(),
-          "1.317039612320676761"
+          "13.142135623730950488"
         );
       });
     });
