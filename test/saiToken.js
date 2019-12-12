@@ -6,16 +6,16 @@ const {
 } = require("hardlydifficult-ethereum-contracts");
 const { CorgContracts } = require("../index");
 
-contract("daiToken", accounts => {
-  let dai;
+contract("saiToken", accounts => {
+  let sai;
   let corg;
 
   beforeEach(async () => {
-    // Deploy a DAI contract for testing
-    dai = await tokens.dai.deploy(web3, accounts[0]);
+    // Deploy a SAI contract for testing
+    sai = await tokens.sai.deploy(web3, accounts[0]);
     // Mint test tokens
     for (let i = 0; i < accounts.length - 1; i++) {
-      await dai.mint(accounts[i], "1000000000000000000000000", {
+      await sai.mint(accounts[i], "1000000000000000000000000", {
         from: accounts[0],
         gas: constants.MAX_GAS
       });
@@ -23,7 +23,7 @@ contract("daiToken", accounts => {
 
     const contracts = await protocols.cOrg.deploy(web3, {
       initReserve: "42000000000000000000",
-      currency: dai.address,
+      currency: sai.address,
       initGoal: "0",
       buySlopeNum: "1",
       buySlopeDen: "100000000000000000000000000000000",
@@ -47,11 +47,11 @@ contract("daiToken", accounts => {
 
   it("text reads as expected from the contract directly", async () => {
     assert.equal(
-      await dai.symbol(),
+      await sai.symbol(),
       "0x4441490000000000000000000000000000000000000000000000000000000000"
     );
     assert.equal(
-      await dai.name(),
+      await sai.name(),
       "0x0000000000000000000000000000000000000000000000000000000000000000"
     );
   });
