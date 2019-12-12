@@ -4,7 +4,7 @@
   "description": "c-org javascript library.",
   "main": "index.js",
   "scripts": {
-    "ganache": "ganache-cli -e 10000000000 -a 100",
+    "ganache": "ganache-cli -e 10000000000 -a 100 -k istanbul",
     "lint": "eslint . --fix",
     "lintNoFix": "eslint .",
     "test": "truffle test"
@@ -30,7 +30,7 @@
     "eslint-plugin-markdown": "1.0.1",
     "eslint-plugin-mocha": "6.2.2",
     "eslint-plugin-prettier": "3.1.1",
-    "ganache-cli": "6.7.0",
+    "ganache-cli": "6.8.0-istanbul.0",
     "prettier": "1.19.1"
   }
 }
