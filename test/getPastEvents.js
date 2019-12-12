@@ -2,7 +2,7 @@ const Web3 = require("web3");
 const { tokens, protocols } = require("hardlydifficult-ethereum-contracts");
 const { CorgContracts } = require("../index");
 
-contract("getPastEvents", accounts => {
+contract.skip("getPastEvents", accounts => {
   const beneficiary = accounts[0];
   const control = accounts[1];
   const feeCollector = accounts[2];
