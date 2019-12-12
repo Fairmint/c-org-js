@@ -23,7 +23,7 @@ contract("saiToken", accounts => {
 
     const contracts = await protocols.cOrg.deploy(web3, {
       initReserve: "42000000000000000000",
-      currency: dai.address,
+      currency: sai.address,
       initGoal: "0",
       buySlopeNum: "1",
       buySlopeDen: "100000000000000000000000000000000",
@@ -47,11 +47,11 @@ contract("saiToken", accounts => {
 
   it("text reads as expected from the contract directly", async () => {
     assert.equal(
-      await dai.symbol(),
+      await sai.symbol(),
       "0x4441490000000000000000000000000000000000000000000000000000000000"
     );
     assert.equal(
-      await dai.name(),
+      await sai.name(),
       "0x0000000000000000000000000000000000000000000000000000000000000000"
     );
   });
