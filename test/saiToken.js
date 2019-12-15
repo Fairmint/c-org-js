@@ -1,10 +1,7 @@
 const Web3 = require("web3");
-const {
-  constants,
-  tokens,
-  protocols
-} = require("hardlydifficult-ethereum-contracts");
+const { constants, tokens } = require("hardlydifficult-ethereum-contracts");
 const { CorgContracts } = require("../index");
+const { Corg } = require("..");
 
 contract("saiToken", accounts => {
   let sai;
@@ -21,7 +18,7 @@ contract("saiToken", accounts => {
       });
     }
 
-    const contracts = await protocols.cOrg.deploy(web3, {
+    const contracts = await Corg.deploy(web3, {
       initReserve: "42000000000000000000",
       currency: sai.address,
       initGoal: "0",
