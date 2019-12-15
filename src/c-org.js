@@ -1,14 +1,18 @@
 const cOrgAbi = require("@fairmint/c-org-abi/abi.json");
 const cOrgBytecode = require("@fairmint/c-org-abi/bytecode.json");
-const { truffleContract } = require("../helpers");
-const constants = require("../constants");
+const { helpers } = require("hardlydifficult-ethereum-contracts");
+const constants = require("./constants");
 
 async function getDat(web3, datAddress) {
-  return await truffleContract.at(web3, cOrgAbi.dat, datAddress);
+  return await helpers.truffleContract.at(web3, cOrgAbi.dat, datAddress);
 }
 
 async function getWhitelist(web3, whitelistAddress) {
-  return await truffleContract.at(web3, cOrgAbi.whitelist, whitelistAddress);
+  return await helpers.truffleContract.at(
+    web3,
+    cOrgAbi.whitelist,
+    whitelistAddress
+  );
 }
 
 module.exports = {

@@ -15,7 +15,7 @@
     "babel-runtime": "6.26.0",
     "bignumber.js": "9.0.0",
     "core-js": "2.6.9",
-    "hardlydifficult-ethereum-contracts": "0.7.10",
+    "hardlydifficult-ethereum-contracts": "0.7.11",
     "web3": "1.2.4"
   },
   "devDependencies": {

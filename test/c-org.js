@@ -1,4 +1,4 @@
-const { protocols } = require("hardlydifficult-ethereum-contracts");
+const { Corg } = require("..");
 const truffleAssert = require("truffle-assertions");
 
 contract("c-org", accounts => {
@@ -8,7 +8,7 @@ contract("c-org", accounts => {
   let contracts;
 
   before(async () => {
-    contracts = await protocols.cOrg.deploy(web3, {
+    contracts = await Corg.deploy(web3, {
       initReserve: "42000000000000000000",
       currency: web3.utils.padLeft(0, 40),
       initGoal: "0",

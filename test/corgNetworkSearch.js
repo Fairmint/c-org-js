@@ -1,5 +1,6 @@
-const { tokens, protocols } = require("hardlydifficult-ethereum-contracts");
+const { tokens } = require("hardlydifficult-ethereum-contracts");
 const { CorgNetworkSearch, Networks } = require("../index");
+const { Corg } = require("..");
 
 contract("corgNetworkSearch", accounts => {
   const beneficiary = accounts[0];
@@ -21,7 +22,7 @@ contract("corgNetworkSearch", accounts => {
       });
     }
 
-    const contracts = await protocols.cOrg.deploy(web3, {
+    const contracts = await Corg.deploy(web3, {
       initReserve: "42000000000000000000",
       currency: usdc.address,
       initGoal: "0",
