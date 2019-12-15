@@ -1,5 +1,5 @@
 module.exports = {
-  Corg: require("./c-org"),
+  Corg: require("./src/c-org"),
   Networks: require("./src/networks"),
   CorgNetworkSearch: require("./src/corgNetworkSearch"),
   CorgContracts: require("./src/corgContracts"),
