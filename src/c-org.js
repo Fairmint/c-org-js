@@ -1,7 +1,6 @@
 const cOrgAbi = require("@fairmint/c-org-abi/abi.json");
 const cOrgBytecode = require("@fairmint/c-org-abi/bytecode.json");
 const { helpers } = require("hardlydifficult-ethereum-contracts");
-const constants = require("./constants");
 
 async function getDat(web3, datAddress) {
   return await helpers.truffleContract.at(web3, cOrgAbi.dat, datAddress);
@@ -15,16 +14,90 @@ async function getWhitelist(web3, whitelistAddress) {
   );
 }
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function waitForDeploy(tx) {
+  const hash = await tx;
+  let receipt;
+  do {
+    await sleep(1500);
+    receipt = await web3.eth.getTransactionReceipt(hash);
+  } while (receipt === null);
+  return receipt.contractAddress;
+}
+
+function deployContract(web3, from, abi, options) {
+  return new Promise((resolve, reject) => {
+    const txObj = new web3.eth.Contract(abi).deploy(options);
+    return txObj.estimateGas().then(gas => {
+      return txObj
+        .send({
+          from,
+          gas
+        })
+        .on("transactionHash", tx => {
+          return resolve(tx);
+        })
+        .on("error", error => {
+          return reject(error);
+        });
+    });
+  });
+}
+
+function deployDatTemplate(web3, from) {
+  return deployContract(web3, from, cOrgAbi.dat, { data: cOrgBytecode.dat });
+}
+function deployWhitelistTemplate(web3, from) {
+  return deployContract(web3, from, cOrgAbi.whitelist, {
+    data: cOrgBytecode.whitelist
+  });
+}
+function deployProxyAdmin(web3, from) {
+  return deployContract(web3, from, cOrgAbi.proxyAdmin, {
+    data: cOrgBytecode.proxyAdmin
+  });
+}
+function deployProxy(web3, from, templateAddress, adminAddress) {
+  return deployContract(web3, from, cOrgAbi.proxy, {
+    data: cOrgBytecode.proxy,
+    arguments: [templateAddress, adminAddress, "0x"]
+  });
+}
+
 module.exports = {
+  deployDatTemplate,
+  deployWhitelistTemplate,
+  deployProxyAdmin,
+  deployProxy,
   deploy: async (web3, options) => {
-    // deploy proxy admin
-    // deploy dat template
-    // deploy dat proxy(implementation, admin)
-    // deploy whitelist template
-    // deploy whitelist proxy(implementation, admin)
-    // whitelist.initialize
-    // dat.initialize
-    // dat.updateConfig
+    // Once per network:
+    // 1) deploy dat template
+    //   - enter address
+    // 2) deploy whitelist template
+    //   - enter address
+
+    // Once per dat:
+    // 3) deploy proxy admin
+    //   - enter address
+    // 4) deploy dat proxy(datTemplate.address, proxyAdmin.address)
+    //   - enter address
+    // 5) deploy whitelist proxy(whitelistTemplate.address, proxyAdmin.address)
+    //   - enter address
+    // 6) whitelistProxy.initialize(datProxy.address)
+    //   - display: initialized
+    // 7) datProxy.initialize(datFixedSettings)
+    //   - display: initialized
+    // 8-11) whitelist.approve(dat, control, beneficiary, feeCollector)
+    // 12) datProxy.updateConfig(whitelistProxy.address, datUpdatableSettings)
+    //   - no change (just display all settings)
+    //   - include new control account address
+    // 13) whitelistProxy.transferOwnership(new control address)
+    //   - no change (just display all settings)
+    // 14) proxyAdmin.transferOwnership(new control address)
+    //   - no change (just display all settings)
 
     const callOptions = Object.assign(
       {
@@ -47,33 +120,33 @@ module.exports = {
       options
     );
 
-    const proxyAdmin = await new web3.eth.Contract(cOrgAbi.proxyAdmin)
-      .deploy({
-        data: cOrgBytecode.proxyAdmin
-      })
-      .send({
-        from: callOptions.control,
-        gas: constants.MAX_GAS
-      });
+    const datTemplateAddress = await waitForDeploy(
+      deployDatTemplate(web3, callOptions.control)
+    );
+    const whitelistTemplateAddress = await waitForDeploy(
+      deployWhitelistTemplate(web3, callOptions.control)
+    );
+    const proxyAdminAddress = await waitForDeploy(
+      deployProxyAdmin(web3, callOptions.control)
+    );
+    const datProxyAddress = await waitForDeploy(
+      deployProxy(
+        web3,
+        callOptions.control,
+        datTemplateAddress,
+        proxyAdminAddress
+      )
+    );
+    const whitelistProxyAddress = await waitForDeploy(
+      deployProxy(
+        web3,
+        callOptions.control,
+        whitelistTemplateAddress,
+        proxyAdminAddress
+      )
+    );
 
-    const datContract = await new web3.eth.Contract(cOrgAbi.dat)
-      .deploy({
-        data: cOrgBytecode.dat
-      })
-      .send({
-        from: callOptions.control,
-        gas: constants.MAX_GAS
-      });
-    const datProxy = await new web3.eth.Contract(cOrgAbi.proxy)
-      .deploy({
-        data: cOrgBytecode.proxy,
-        arguments: [datContract._address, proxyAdmin._address, "0x"]
-      })
-      .send({
-        from: callOptions.control,
-        gas: constants.MAX_GAS
-      });
-    const dat = await getDat(web3, datProxy._address);
+    const dat = await getDat(web3, datProxyAddress);
 
     await dat.initialize(
       callOptions.initReserve,
@@ -87,25 +160,7 @@ module.exports = {
       { from: callOptions.control }
     );
 
-    const whitelistContract = await new web3.eth.Contract(cOrgAbi.whitelist)
-      .deploy({
-        data: cOrgBytecode.whitelist
-      })
-      .send({
-        from: callOptions.control,
-        gas: constants.MAX_GAS
-      });
-    const whitelistProxy = await new web3.eth.Contract(cOrgAbi.proxy)
-      .deploy({
-        data: cOrgBytecode.proxy,
-        arguments: [whitelistContract._address, proxyAdmin._address, "0x"]
-      })
-      .send({
-        from: callOptions.control,
-        gas: constants.MAX_GAS
-      });
-
-    const whitelist = await getWhitelist(web3, whitelistProxy._address);
+    const whitelist = await getWhitelist(web3, whitelistProxyAddress);
     await whitelist.initialize(dat.address, { from: callOptions.control });
     await whitelist.approve(dat.address, true, { from: callOptions.control });
     await whitelist.approve(callOptions.beneficiary, true, {

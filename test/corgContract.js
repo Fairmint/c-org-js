@@ -1,7 +1,6 @@
 const Web3 = require("web3");
 const { tokens } = require("hardlydifficult-ethereum-contracts");
-const { Corg } = require("..");
-const { CorgContracts } = require("../index");
+const { Corg, CorgContracts } = require("..");
 
 contract("corgContract", accounts => {
   const beneficiary = accounts[0];
@@ -64,7 +63,6 @@ contract("corgContract", accounts => {
       await corg.kyc(accounts[3]);
       await corg.refreshAccountInfo(accounts[3]); // switch to test account
       await corg.approve();
-
       await corg.buy("1", 100);
     });
 

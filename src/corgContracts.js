@@ -39,7 +39,6 @@ module.exports = class CorgContracts {
         Object.assign(
           {
             from: this.data.account.address,
-            gas: "500000", // todo estimate gas
             gasPrice: this.web3.utils.toWei("1.1", "Gwei")
           },
           options
