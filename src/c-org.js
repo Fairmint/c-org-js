@@ -12,6 +12,13 @@ async function getWhitelist(web3, whitelistAddress) {
     whitelistAddress
   );
 }
+async function getProxyAdmin(web3, proxyAdminAddress) {
+  return await helpers.truffleContract.at(
+    web3,
+    cOrgAbi.proxyAdmin,
+    proxyAdminAddress
+  );
+}
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -129,8 +136,28 @@ async function initializeWhitelist(
 async function whitelistApprove(web3, from, whitelistProxyAddress, account) {
   const whitelist = await getWhitelist(web3, whitelistProxyAddress);
   await whitelist.approve(account, true, {
-    from: from
+    from
   });
+}
+async function whitelistTransferOwnership(
+  web3,
+  from,
+  whitelistProxyAddress,
+  newOwner
+) {
+  const whitelist = await getWhitelist(web3, whitelistProxyAddress);
+  await whitelist.transferOwnership(newOwner, {
+    from
+  });
+}
+async function proxyAdminTransferOwnership(
+  web3,
+  from,
+  proxyAdminAddress,
+  newOwner
+) {
+  const proxyAdmin = await getProxyAdmin(web3, proxyAdminAddress);
+  await proxyAdmin.transferOwnership(newOwner, { from });
 }
 
 module.exports = {
@@ -150,6 +177,10 @@ module.exports = {
   whitelistApprove,
   // 12)
   updateDat,
+  // 13)
+  whitelistTransferOwnership,
+  // 14)
+  proxyAdminTransferOwnership,
   deploy: async (web3, options) => {
     // Once per network:
     // 1) deploy dat template
