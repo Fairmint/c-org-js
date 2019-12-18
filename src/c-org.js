@@ -1,11 +1,17 @@
 const cOrgAbi = require("@fairmint/c-org-abi/abi.json");
 const cOrgBytecode = require("@fairmint/c-org-abi/bytecode.json");
 const { helpers } = require("hardlydifficult-ethereum-contracts");
+const Web3 = require("web3");
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 async function getDat(web3, datAddress) {
+  web3 = new Web3(web3);
   return await helpers.truffleContract.at(web3, cOrgAbi.dat, datAddress);
 }
 async function getWhitelist(web3, whitelistAddress) {
+  web3 = new Web3(web3);
   return await helpers.truffleContract.at(
     web3,
     cOrgAbi.whitelist,
@@ -13,14 +19,12 @@ async function getWhitelist(web3, whitelistAddress) {
   );
 }
 async function getProxyAdmin(web3, proxyAdminAddress) {
+  web3 = new Web3(web3);
   return await helpers.truffleContract.at(
     web3,
     cOrgAbi.proxyAdmin,
     proxyAdminAddress
   );
-}
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
 }
 async function waitForDeploy(tx) {
   const hash = await tx;
@@ -32,6 +36,7 @@ async function waitForDeploy(tx) {
   return receipt.contractAddress;
 }
 function deployContract(web3, from, abi, options) {
+  web3 = new Web3(web3);
   return new Promise((resolve, reject) => {
     const txObj = new web3.eth.Contract(abi).deploy(options);
     return txObj.estimateGas().then(gas => {
@@ -50,25 +55,30 @@ function deployContract(web3, from, abi, options) {
   });
 }
 function deployDatTemplate(web3, from) {
+  web3 = new Web3(web3);
   return deployContract(web3, from, cOrgAbi.dat, { data: cOrgBytecode.dat });
 }
 function deployWhitelistTemplate(web3, from) {
+  web3 = new Web3(web3);
   return deployContract(web3, from, cOrgAbi.whitelist, {
     data: cOrgBytecode.whitelist
   });
 }
 function deployProxyAdmin(web3, from) {
+  web3 = new Web3(web3);
   return deployContract(web3, from, cOrgAbi.proxyAdmin, {
     data: cOrgBytecode.proxyAdmin
   });
 }
 function deployProxy(web3, from, templateAddress, adminAddress) {
+  web3 = new Web3(web3);
   return deployContract(web3, from, cOrgAbi.proxy, {
     data: cOrgBytecode.proxy,
     arguments: [templateAddress, adminAddress, "0x"]
   });
 }
 async function initializeDat(web3, from, datProxyAddress, options) {
+  web3 = new Web3(web3);
   const callOptions = Object.assign(
     {
       initReserve: "42000000000000000000",
@@ -96,6 +106,7 @@ async function initializeDat(web3, from, datProxyAddress, options) {
   );
 }
 async function updateDat(web3, from, datProxyAddress, options) {
+  web3 = new Web3(web3);
   const callOptions = Object.assign(
     {
       revenueCommitmentBasisPoints: "1000",
@@ -130,10 +141,12 @@ async function initializeWhitelist(
   whitelistProxyAddress,
   datProxyAddress
 ) {
+  web3 = new Web3(web3);
   const whitelist = await getWhitelist(web3, whitelistProxyAddress);
   await whitelist.initialize(datProxyAddress, { from });
 }
 async function whitelistApprove(web3, from, whitelistProxyAddress, account) {
+  web3 = new Web3(web3);
   const whitelist = await getWhitelist(web3, whitelistProxyAddress);
   await whitelist.approve(account, true, {
     from
@@ -145,6 +158,7 @@ async function whitelistTransferOwnership(
   whitelistProxyAddress,
   newOwner
 ) {
+  web3 = new Web3(web3);
   const whitelist = await getWhitelist(web3, whitelistProxyAddress);
   await whitelist.transferOwnership(newOwner, {
     from
@@ -156,6 +170,7 @@ async function proxyAdminTransferOwnership(
   proxyAdminAddress,
   newOwner
 ) {
+  web3 = new Web3(web3);
   const proxyAdmin = await getProxyAdmin(web3, proxyAdminAddress);
   await proxyAdmin.transferOwnership(newOwner, { from });
 }
