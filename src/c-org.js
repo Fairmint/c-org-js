@@ -188,13 +188,13 @@ module.exports = {
   initializeDat,
   // 7)
   initializeWhitelist,
-  // 8-11)
+  // 8-9)
   whitelistApprove,
-  // 12)
+  // 10)
   updateDat,
-  // 13)
+  // 11)
   whitelistTransferOwnership,
-  // 14)
+  // 12)
   proxyAdminTransferOwnership,
   deploy: async (web3, options) => {
     // Once per network:
@@ -214,13 +214,13 @@ module.exports = {
     //   - display: initialized
     // 7) whitelistProxy.initialize(datProxy.address)
     //   - display: initialized
-    // 8-11) whitelist.approve(dat, control, beneficiary, feeCollector)
-    // 12) datProxy.updateConfig(whitelistProxy.address, datUpdatableSettings)
+    // 8-9) whitelist.approve(control, beneficiary)
+    // 10) datProxy.updateConfig(whitelistProxy.address, datUpdatableSettings)
     //   - no change (just display all settings)
     //   - include new control account address
-    // 13) whitelistProxy.transferOwnership(new control address)
+    // 11) whitelistProxy.transferOwnership(new control address)
     //   - no change (just display all settings)
-    // 14) proxyAdmin.transferOwnership(new control address)
+    // 12) proxyAdmin.transferOwnership(new control address)
     //   - no change (just display all settings)
 
     const datTemplateAddress = await waitForDeploy(
@@ -257,12 +257,6 @@ module.exports = {
       web3,
       options.control,
       whitelistProxyAddress,
-      datProxyAddress
-    );
-    await whitelistApprove(
-      web3,
-      options.control,
-      whitelistProxyAddress,
       options.control
     );
     if (options.beneficiary && options.beneficiary !== options.control) {
@@ -271,14 +265,6 @@ module.exports = {
         options.control,
         whitelistProxyAddress,
         options.beneficiary
-      );
-    }
-    if (options.feeCollector && options.feeCollector !== options.control) {
-      await whitelistApprove(
-        web3,
-        options.control,
-        whitelistProxyAddress,
-        options.feeCollector
       );
     }
 
