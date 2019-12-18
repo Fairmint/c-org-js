@@ -247,7 +247,7 @@ module.exports = {
     options.whitelistAddress = whitelistProxyAddress;
     await initializeDat(web3, options.control, datProxyAddress, options);
 
-    await whitelistApprove(
+    await initializeWhitelist(
       web3,
       options.control,
       whitelistProxyAddress,
@@ -265,14 +265,6 @@ module.exports = {
         options.control,
         whitelistProxyAddress,
         options.beneficiary
-      );
-    }
-    if (options.feeCollector && options.feeCollector !== options.control) {
-      await whitelistApprove(
-        web3,
-        options.control,
-        whitelistProxyAddress,
-        options.feeCollector
       );
     }
 
