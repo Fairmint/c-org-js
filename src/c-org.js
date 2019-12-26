@@ -46,7 +46,7 @@ function deployContract(web3, from, abi, options) {
       return txObj
         .send({
           from,
-          gas.toFixed()
+          gas: gas.toFixed()
         })
         .on("transactionHash", tx => {
           return resolve(tx);
