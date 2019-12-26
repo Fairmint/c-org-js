@@ -13,7 +13,7 @@ module.exports = {
     transferFrom: 87000,
     updateConfig: 176000
   },
-  USDC: {
+  Currency: {
     approve: 60000,
     transfer: 50000
   },
