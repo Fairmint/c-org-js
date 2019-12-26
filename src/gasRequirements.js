@@ -14,8 +14,8 @@ module.exports = {
     updateConfig: 176000
   },
   Currency: {
-    approve: 60000,
-    transfer: 50000
+    approve: 70000,
+    transfer: 60000
   },
   Whitelist: {
     approve: 57000
