@@ -275,7 +275,7 @@ module.exports = class CorgContracts {
 
   async approve() {
     await this._sendTx(this.currency.methods.approve(this.dat._address, -1), {
-      gas: gasRequirements.USDC.approve
+      gas: gasRequirements.Currency.approve
     });
   }
   async kyc(account, isApproved = true) {
