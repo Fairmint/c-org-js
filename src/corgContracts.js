@@ -92,6 +92,8 @@ module.exports = class CorgContracts {
     const [
       decimals,
       currencyDecimals,
+      name,
+      symbol,
       buySlopeNum,
       buySlopeDen,
       initGoal,
@@ -100,6 +102,8 @@ module.exports = class CorgContracts {
     ] = await Promise.all([
       this.dat.methods.decimals().call(),
       this.currency ? this.currency.methods.decimals().call() : 18,
+      this.dat.methods.name().call(),
+      this.dat.methods.symbol().call(),
       this.dat.methods.buySlopeNum().call(),
       this.dat.methods.buySlopeDen().call(),
       this.dat.methods.initGoal().call(),
@@ -115,6 +119,8 @@ module.exports = class CorgContracts {
         symbol: currencySymbol
       }
     };
+    this.data.name = name;
+    this.data.symbol = symbol;
 
     this.data.buySlope = new BigNumber(buySlopeNum)
       .shiftedBy(18 + 18 - this.data.currency.decimals)
@@ -136,8 +142,6 @@ module.exports = class CorgContracts {
     const [
       totalSupply,
       burnedSupply,
-      name,
-      symbol,
       beneficiary,
       control,
       feeCollector,
@@ -151,8 +155,6 @@ module.exports = class CorgContracts {
     ] = await Promise.all([
       this.dat.methods.totalSupply().call(),
       this.dat.methods.burnedSupply().call(),
-      this.dat.methods.name().call(),
-      this.dat.methods.symbol().call(),
       this.dat.methods.beneficiary().call(),
       this.dat.methods.control().call(),
       this.dat.methods.feeCollector().call(),
@@ -174,8 +176,6 @@ module.exports = class CorgContracts {
     this.data.burnedSupply = new BigNumber(burnedSupply).shiftedBy(
       -this.data.decimals
     );
-    this.data.name = name;
-    this.data.symbol = symbol;
     this.data.beneficiary = beneficiary;
     this.data.control = control;
     this.data.feeCollector = feeCollector;
