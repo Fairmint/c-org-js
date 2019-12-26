@@ -2,6 +2,7 @@ const cOrgAbi = require("@fairmint/c-org-abi/abi.json");
 const cOrgBytecode = require("@fairmint/c-org-abi/bytecode.json");
 const { helpers } = require("hardlydifficult-ethereum-contracts");
 const Web3 = require("web3");
+const BigNumber = require("bignumber.js");
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -40,10 +41,12 @@ function deployContract(web3, from, abi, options) {
   return new Promise((resolve, reject) => {
     const txObj = new web3.eth.Contract(abi).deploy(options);
     return txObj.estimateGas().then(gas => {
+      gas = new BigNumber(gas);
+      gas = gas.times(1.1).dp(0, BigNumber.ROUND_UP); // +10% in case estimate was off
       return txObj
         .send({
           from,
-          gas
+          gas: gas.toFixed()
         })
         .on("transactionHash", tx => {
           return resolve(tx);
