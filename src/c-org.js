@@ -42,7 +42,7 @@ function deployContract(web3, from, abi, options) {
     const txObj = new web3.eth.Contract(abi).deploy(options);
     return txObj.estimateGas().then(gas => {
       gas = new BigNumber(gas);
-      gas = gas.times(1.1); // +10% in case estimate was off
+      gas = gas.times(1.1).dp(0, BigNumber.ROUND_UP); // +10% in case estimate was off
       return txObj
         .send({
           from,
