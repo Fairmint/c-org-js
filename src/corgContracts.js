@@ -2,6 +2,7 @@ const abi = require("@fairmint/c-org-abi/abi.json");
 const BigNumber = require("bignumber.js");
 const constants = require("./constants");
 const gasRequirements = require("./gasRequirements");
+const Web3 = require("web3");
 
 function mergeDeDupe(arr) {
   // Flatten array of arrays of objects into an array of objects
@@ -28,7 +29,7 @@ module.exports = class CorgContracts {
    * @param {object} metadata An object with any additional info such as networkName.
    */
   constructor(web3, address, metadata) {
-    this.web3 = web3;
+    this.web3 = new Web3(web3);
     this.dat = new this.web3.eth.Contract(abi.dat, address);
     this.metadata = metadata;
   }
