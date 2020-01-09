@@ -1,6 +1,6 @@
 const Web3 = require("web3");
 const { tokens } = require("hardlydifficult-ethereum-contracts");
-const { Corg, CorgContracts } = require("..");
+const { Corg, CorgContracts, constants } = require("..");
 
 contract("corgContract", accounts => {
   const beneficiary = accounts[0];
@@ -51,6 +51,16 @@ contract("corgContract", accounts => {
   it("Defaults to 0 balance", async () => {
     await corg.refreshAccountInfo(accounts[3]);
     assert.equal(corg.data.account.fairBalance.toFixed(), "0");
+  });
+
+  it("Has the implementation address", async () => {
+    assert.notEqual(corg.data.proxyImplementation, constants.ZERO_ADDRESS);
+    assert(web3.utils.isAddress(corg.data.proxyImplementation));
+  });
+
+  it("Has the proxyAdmin address", async () => {
+    assert.notEqual(corg.data.proxyAdmin, constants.ZERO_ADDRESS);
+    assert(web3.utils.isAddress(corg.data.proxyAdmin));
   });
 
   it("Defaults to Infinity market sentiment", async () => {
