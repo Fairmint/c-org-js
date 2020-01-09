@@ -3,6 +3,7 @@ const BigNumber = require("bignumber.js");
 const constants = require("./constants");
 const gasRequirements = require("./gasRequirements");
 const Web3 = require("web3");
+const { Contract, Proxy, ZWeb3 } = require("@openzeppelin/upgrades");
 
 function mergeDeDupe(arr) {
   // Flatten array of arrays of objects into an array of objects
@@ -90,6 +91,9 @@ module.exports = class CorgContracts {
       currencyName = this.web3.utils.hexToUtf8(currencyName);
     }
 
+    ZWeb3.initialize(this.web3.eth.currentProvider);
+    const proxy = Proxy.at(this.dat._address);
+
     const [
       decimals,
       currencyDecimals,
@@ -99,7 +103,9 @@ module.exports = class CorgContracts {
       buySlopeDen,
       initGoal,
       initReserve,
-      investmentReserve
+      investmentReserve,
+      proxyImplementation,
+      proxyAdmin
     ] = await Promise.all([
       this.dat.methods.decimals().call(),
       this.currency ? this.currency.methods.decimals().call() : 18,
@@ -109,7 +115,9 @@ module.exports = class CorgContracts {
       this.dat.methods.buySlopeDen().call(),
       this.dat.methods.initGoal().call(),
       this.dat.methods.initReserve().call(),
-      this.dat.methods.investmentReserveBasisPoints().call()
+      this.dat.methods.investmentReserveBasisPoints().call(),
+      proxy.implementation(),
+      proxy.admin()
     ]);
 
     this.data = {
@@ -118,10 +126,12 @@ module.exports = class CorgContracts {
         decimals: parseInt(currencyDecimals),
         name: currencyName,
         symbol: currencySymbol
-      }
+      },
+      name,
+      symbol,
+      proxyImplementation,
+      proxyAdmin
     };
-    this.data.name = name;
-    this.data.symbol = symbol;
 
     this.data.buySlope = new BigNumber(buySlopeNum)
       .shiftedBy(18 + 18 - this.data.currency.decimals)
