@@ -181,11 +181,12 @@ async function proxyAdminUpgrade(
   web3,
   from,
   proxyAdminAddress,
+  proxyAddress,
   newImplementation
 ) {
   web3 = new Web3(web3);
   const proxyAdmin = await getProxyAdmin(web3, proxyAdminAddress);
-  await proxyAdmin.upgrade(newImplementation, { from });
+  await proxyAdmin.upgrade(proxyAddress, newImplementation, { from });
 }
 
 module.exports = {
