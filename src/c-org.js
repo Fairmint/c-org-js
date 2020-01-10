@@ -177,6 +177,16 @@ async function proxyAdminTransferOwnership(
   const proxyAdmin = await getProxyAdmin(web3, proxyAdminAddress);
   await proxyAdmin.transferOwnership(newOwner, { from });
 }
+async function proxyAdminUpgrade(
+  web3,
+  from,
+  proxyAdminAddress,
+  newImplementation
+) {
+  web3 = new Web3(web3);
+  const proxyAdmin = await getProxyAdmin(web3, proxyAdminAddress);
+  await proxyAdmin.upgrade(newImplementation, { from });
+}
 
 module.exports = {
   // 1)
@@ -278,5 +288,6 @@ module.exports = {
     return { dat, whitelist };
   },
   getDat,
-  getWhitelist
+  getWhitelist,
+  proxyAdminUpgrade
 };
