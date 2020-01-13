@@ -3,29 +3,11 @@ const BigNumber = require("bignumber.js");
 const constants = require("./constants");
 const gasRequirements = require("./gasRequirements");
 const Web3 = require("web3");
-const { Contract, Proxy, ZWeb3 } = require("@openzeppelin/upgrades");
-
-function mergeDeDupe(arr) {
-  // Flatten array of arrays of objects into an array of objects
-  const data = [...new Set([].concat(...arr))];
-
-  // De-dupe results
-  const obj = {};
-  for (const entry of data) {
-    obj[JSON.stringify(entry)] = entry;
-  }
-
-  // And push back into an array
-  const results = [];
-  for (const key in obj) {
-    results.push(obj[key]);
-  }
-  return results;
-}
+const Proxy = require("./Proxy");
 
 module.exports = class CorgContracts {
   /**
-   * @param {object} web3 Expecting a web3 1.0 object.
+   * @param {object} web3 Expecting a web3 object or provider.
    * @param {string} address The DAT contract address.
    * @param {object} metadata An object with any additional info such as networkName.
    */
@@ -91,8 +73,7 @@ module.exports = class CorgContracts {
       currencyName = this.web3.utils.hexToUtf8(currencyName);
     }
 
-    ZWeb3.initialize(this.web3.eth.currentProvider);
-    const proxy = Proxy.at(this.dat._address);
+    const proxy = new Proxy(this.web3, this.dat._address);
 
     const [
       decimals,
@@ -418,78 +399,4 @@ module.exports = class CorgContracts {
       gas: gasRequirements.DecentralizedAutonomousTrust.burn
     });
   }
-
-  /**
-   * Gets all events involving the given account.
-   * Events: Approval owner/spender, Transfer from/to, Buy from/to, Sell from/to, and/or Pay from/to
-   */
-  // async getPastEventsForAccount(account) {
-  //   const promises = [
-  //     this.dat.getPastEvents("Transfer", {
-  //       filter: {
-  //         _to: account
-  //       }
-  //     }),
-  //     this.dat.getPastEvents("Transfer", {
-  //       filter: {
-  //         _from: account
-  //       }
-  //     }),
-  //     this.dat.getPastEvents("Approval", {
-  //       filter: {
-  //         _owner: account
-  //       }
-  //     }),
-  //     this.dat.getPastEvents("Approval", {
-  //       filter: {
-  //         _spender: account
-  //       }
-  //     }),
-  //     this.dat.getPastEvents("Buy", {
-  //       filter: {
-  //         _from: account
-  //       }
-  //     }),
-  //     this.dat.getPastEvents("Buy", {
-  //       filter: {
-  //         _to: account
-  //       }
-  //     }),
-  //     this.dat.getPastEvents("Sell", {
-  //       filter: {
-  //         _from: account
-  //       }
-  //     }),
-  //     this.dat.getPastEvents("Sell", {
-  //       filter: {
-  //         _to: account
-  //       }
-  //     }),
-  //     this.dat.getPastEvents("Pay", {
-  //       filter: {
-  //         _from: account
-  //       }
-  //     }),
-  //     this.dat.getPastEvents("Pay", {
-  //       filter: {
-  //         _to: account
-  //       }
-  //     })
-  //   ];
-
-  //   if (this.currency) {
-  //     promises.push(
-  //       this.currency.getPastEvents("Transfer", { filter: { from: account } }),
-  //       this.currency.getPastEvents("Transfer", { filter: { to: account } }),
-  //       this.currency.getPastEvents("Approval", {
-  //         filter: { owner: account }
-  //       }),
-  //       this.currency.getPastEvents("Approval", {
-  //         filter: { spender: account }
-  //       })
-  //     );
-  //   }
-
-  //   return mergeDeDupe(await Promise.all(promises));
-  // }
 };
