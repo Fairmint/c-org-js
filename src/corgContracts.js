@@ -73,7 +73,8 @@ module.exports = class CorgContracts {
       currencyName = this.web3.utils.hexToUtf8(currencyName);
     }
 
-    const proxy = new Proxy(this.web3, this.dat._address);
+    const datProxy = new Proxy(this.web3, this.dat._address);
+    const whitelistProxy = new Proxy(this.web3, this.whitelist._address);
 
     const [
       decimals,
@@ -86,7 +87,8 @@ module.exports = class CorgContracts {
       initReserve,
       investmentReserve,
       proxyImplementation,
-      proxyAdmin
+      proxyAdmin,
+      whitelistProxyImplementation
     ] = await Promise.all([
       this.dat.methods.decimals().call(),
       this.currency ? this.currency.methods.decimals().call() : 18,
@@ -97,8 +99,9 @@ module.exports = class CorgContracts {
       this.dat.methods.initGoal().call(),
       this.dat.methods.initReserve().call(),
       this.dat.methods.investmentReserveBasisPoints().call(),
-      proxy.implementation(),
-      proxy.admin()
+      datProxy.implementation(),
+      datProxy.admin(),
+      whitelistProxy.implementation()
     ]);
 
     this.data = {
@@ -111,7 +114,8 @@ module.exports = class CorgContracts {
       name,
       symbol,
       proxyImplementation,
-      proxyAdmin
+      proxyAdmin,
+      whitelistProxyImplementation
     };
 
     this.data.buySlope = new BigNumber(buySlopeNum)
