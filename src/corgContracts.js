@@ -196,6 +196,7 @@ module.exports = class CorgContracts {
     } else {
       this.data.liveFAIRPrice = this.data.totalSupply
         .plus(this.data.burnedSupply)
+        .minus(this.data.initReserve)
         .times(this.data.buySlope);
     }
 
