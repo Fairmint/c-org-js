@@ -74,6 +74,19 @@ contract("corgContract", accounts => {
       await corg.refreshAccountInfo(accounts[3]); // switch to test account
       await corg.approve();
       await corg.buy("1", 100);
+      await corg.refreshOrgInfo();
+    });
+
+    it("Has a mintPrice", async () => {
+      assert(corg.data.mintPrice.gt(0));
+    });
+
+    it("Has a lastTokenPrice", async () => {
+      assert(corg.data.lastTokenPrice.gt(0));
+    });
+
+    it("Has a redeemPrice", async () => {
+      assert(corg.data.redeemPrice.gt(0));
     });
 
     it("Can buy fair", async () => {

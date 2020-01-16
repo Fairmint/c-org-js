@@ -186,17 +186,43 @@ module.exports = class CorgContracts {
     this.data.openUntilAtLeast = openUntilAtLeast;
     this.data.state = constants.STATES[stateId];
 
-    // Live FAIR price. The price of the last transaction. For the preview, we can
-    // safely calculate it with (total_supply+burnt_supply)*buy_slope durning RUN (or CLOSE).
-    // price=init_goal*buy_slope/2 during INIT (or CANCEL)
+    // mintPrice. The price of the last transaction. For the preview, we can
+    // safely calculate it with (total_supply+burnt_supply-init_reserve)*buy_slope durning
+    // RUN (or CLOSE).  price=init_goal*buy_slope/2 during INIT (or CANCEL)
     if (this.data.state === "INIT" || this.data.state === "CANCEL") {
-      this.data.liveFAIRPrice = this.data.initGoal
-        .times(this.data.buySlope)
-        .div(2);
+      this.data.mintPrice = this.data.initGoal.times(this.data.buySlope).div(2);
     } else {
-      this.data.liveFAIRPrice = this.data.totalSupply
+      this.data.mintPrice = this.data.totalSupply
         .plus(this.data.burnedSupply)
+        .minus(this.data.initReserve)
         .times(this.data.buySlope);
+    }
+
+    // lastTokenPrice will include 2nd hand markets in the future as well
+    // at first it's always == mintPrice
+    this.data.lastTokenPrice = this.data.mintPrice;
+
+    // redeemPrice
+    // (total_supply+burnt_supply)*sell_slope + (sell_slope*burnt_supply^2)/(2*total_supply).
+    // with sell_slope=((2*buyback_reserve)/((total_supply+burnt_supply)^2)))
+    // (b^2 r)/(t (b + t)^2) + (2 r)/(b + t)
+    if (this.data.totalSupply.plus(this.data.burnedSupply).eq(0)) {
+      this.data.redeemPrice = new BigNumber(0);
+    } else {
+      this.data.redeemPrice = this.data.burnedSupply
+        .pow(2)
+        .times(this.data.buybackReserve)
+        .div(
+          this.data.burnedSupply
+            .plus(this.data.totalSupply)
+            .pow(2)
+            .times(this.data.totalSupply)
+        )
+        .plus(
+          this.data.buybackReserve
+            .times(2)
+            .div(this.data.burnedSupply.plus(this.data.totalSupply))
+        );
     }
 
     /**
