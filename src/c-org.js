@@ -108,6 +108,11 @@ async function initializeDat(web3, from, datProxyAddress, options) {
     { from }
   );
 }
+async function initializePermit(web3, from, datProxyAddress) {
+  web3 = new Web3(web3);
+  const dat = await getDat(web3, datProxyAddress);
+  await dat.initializePermit({ from });
+}
 async function updateDat(web3, from, datProxyAddress, options) {
   web3 = new Web3(web3);
   const callOptions = Object.assign(
@@ -200,6 +205,8 @@ module.exports = {
   deployProxy,
   // 6)
   initializeDat,
+  // 6.5)
+  initializePermit,
   // 7)
   initializeWhitelist,
   // 8-9)
@@ -226,6 +233,7 @@ module.exports = {
     //   - enter address
     // 6) datProxy.initialize(datFixedSettings)
     //   - display: initialized
+    // 6.5) datProxy.initializePermit()
     // 7) whitelistProxy.initialize(datProxy.address)
     //   - display: initialized
     // 8-9) whitelist.approve(control, beneficiary)
@@ -260,6 +268,7 @@ module.exports = {
 
     options.whitelistAddress = whitelistProxyAddress;
     await initializeDat(web3, options.control, datProxyAddress, options);
+    await initializePermit(web3, options.control, datProxyAddress);
 
     await initializeWhitelist(
       web3,
