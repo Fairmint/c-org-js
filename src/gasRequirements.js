@@ -8,6 +8,7 @@ module.exports = {
     increaseAllowance: 57000,
     initialize: 429000,
     pay: 147000,
+    permit: 100000,
     sell: 99000,
     transfer: 77000,
     transferFrom: 87000,

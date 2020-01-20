@@ -81,6 +81,7 @@ module.exports = class CorgContracts {
       currencyDecimals,
       name,
       symbol,
+      version,
       buySlopeNum,
       buySlopeDen,
       initGoal,
@@ -94,6 +95,7 @@ module.exports = class CorgContracts {
       this.currency ? this.currency.methods.decimals().call() : 18,
       this.dat.methods.name().call(),
       this.dat.methods.symbol().call(),
+      this.dat.methods.version().call(),
       this.dat.methods.buySlopeNum().call(),
       this.dat.methods.buySlopeDen().call(),
       this.dat.methods.initGoal().call(),
@@ -113,6 +115,7 @@ module.exports = class CorgContracts {
       },
       name,
       symbol,
+      version,
       proxyImplementation,
       proxyAdmin,
       whitelistProxyImplementation
@@ -428,5 +431,94 @@ module.exports = class CorgContracts {
     return await this._sendTx(this.dat.methods.burn(tokenValue.toFixed()), {
       gas: gasRequirements.DecentralizedAutonomousTrust.burn
     });
+  }
+  /**
+   *
+   * @param spender address of the account which will be able to spend your tokens
+   * @param expiry the timestamp in seconds for when the signed message is valid until
+   * @param allowed `true` to approve(-1) and `false` to approve(0) which removes approval
+   */
+  async signPermit(spender, expiry, allowed) {
+    // Original source: https://medium.com/metamask/eip712-is-coming-what-to-expect-and-how-to-use-it-bb92fd1a7a26
+    const domain = [
+      { name: "name", type: "string" },
+      { name: "version", type: "string" },
+      { name: "chainId", type: "uint256" },
+      { name: "verifyingContract", type: "address" }
+    ];
+    const permit = [
+      { name: "holder", type: "address" },
+      { name: "spender", type: "address" },
+      { name: "nonce", type: "uint256" },
+      { name: "expiry", type: "uint256" },
+      { name: "allowed", type: "bool" }
+    ];
+    const domainData = {
+      name: this.data.name,
+      version: this.data.version,
+      chainId: parseInt(web3.version.network, 10),
+      verifyingContract: this.dat._address
+    };
+    const message = {
+      holder: this.data.account.address,
+      spender,
+      nonce: await this.dat.methods.nonces(this.data.account.address).call(),
+      expiry,
+      allowed
+    };
+    const data = JSON.stringify({
+      types: {
+        EIP712Domain: domain,
+        Permit: permit
+      },
+      domain: domainData,
+      primaryType: "Permit",
+      message
+    });
+    return await new Promise((reject, resolve) => {
+      web3.currentProvider.sendAsync(
+        {
+          method: "eth_signTypedData_v4",
+          params: [this.data.account.address, data],
+          from: this.data.account.address
+        },
+        function(err, result) {
+          if (err) {
+            return reject(err);
+          }
+          const signature = result.result.substring(2);
+          const r = "0x" + signature.substring(0, 64);
+          const s = "0x" + signature.substring(64, 128);
+          const v = parseInt(signature.substring(128, 130), 16);
+          // The signature is now comprised of r, s, and v.
+          return resolve(
+            Object.assign(message, {
+              signature: {
+                v,
+                r,
+                s
+              }
+            })
+          );
+        }
+      );
+    });
+  }
+  async sendPermit({ holder, spender, nonce, expiry, allowed, signature }) {
+    return await this._sendTx(
+      this.dat.methods.permit(
+        holder,
+        spender,
+        nonce,
+        expiry,
+        allowed,
+        signature.v,
+        signature.r,
+        signature.s
+      ),
+      {
+        gas: gasRequirements.DecentralizedAutonomousTrust.permit
+      }
+    );
   }
 };
