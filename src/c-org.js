@@ -268,7 +268,7 @@ module.exports = {
 
     options.whitelistAddress = whitelistProxyAddress;
     await initializeDat(web3, options.control, datProxyAddress, options);
-    await initializePermit(web3, options.control);
+    await initializePermit(web3, options.control, datProxyAddress);
 
     await initializeWhitelist(
       web3,
