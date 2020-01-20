@@ -424,6 +424,15 @@ module.exports = class CorgContracts {
       }
     );
   }
+  async estimateExitFee() {
+    const exitFee = await this.dat.methods.estimateExitFee("0").call();
+    return new BigNumber(exitFee).shiftedBy(-this.data.currency.decimals);
+  }
+  async close() {
+    return await this._sendTx(this.dat.methods.close(), {
+      gas: gasRequirements.DecentralizedAutonomousTrust.close
+    });
+  }
   async burn(tokenAmount) {
     const tokenValue = new BigNumber(tokenAmount)
       .shiftedBy(this.data.decimals)
