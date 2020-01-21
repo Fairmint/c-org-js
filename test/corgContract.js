@@ -89,6 +89,10 @@ contract("corgContract", accounts => {
       assert(corg.data.redeemPrice.gt(0));
     });
 
+    it("Is version 2", async () => {
+      assert.equal(corg.data.version, "2");
+    });
+
     it("Can buy fair", async () => {
       await corg.refreshAccountInfo(accounts[3]);
       assert.equal(
