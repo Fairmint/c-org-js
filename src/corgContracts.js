@@ -81,7 +81,6 @@ module.exports = class CorgContracts {
       currencyDecimals,
       name,
       symbol,
-      version,
       buySlopeNum,
       buySlopeDen,
       initGoal,
@@ -95,7 +94,6 @@ module.exports = class CorgContracts {
       this.currency ? this.currency.methods.decimals().call() : 18,
       this.dat.methods.name().call(),
       this.dat.methods.symbol().call(),
-      this.dat.methods.version().call(),
       this.dat.methods.buySlopeNum().call(),
       this.dat.methods.buySlopeDen().call(),
       this.dat.methods.initGoal().call(),
@@ -115,7 +113,7 @@ module.exports = class CorgContracts {
       },
       name,
       symbol,
-      version,
+      version: "2", // reading version dynamically fails in the browser
       proxyImplementation,
       proxyAdmin,
       whitelistProxyImplementation
