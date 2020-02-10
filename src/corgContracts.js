@@ -18,7 +18,7 @@ module.exports = class CorgContracts {
   }
 
   async _sendTx(tx, options) {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       tx.send(
         Object.assign(
           {
@@ -27,9 +27,14 @@ module.exports = class CorgContracts {
           },
           options
         )
-      ).on("transactionHash", tx => {
-        resolve(tx);
-      });
+      )
+        .on("transactionHash", tx => {
+          resolve(tx);
+        })
+        .on("error", error => {
+          console.log(error);
+          reject(error);
+        });
     });
   }
 
@@ -265,13 +270,13 @@ module.exports = class CorgContracts {
     const [
       ethBalance,
       fairBalance,
-      kycApproved,
+      userId,
       currencyBalance,
       allowance
     ] = await Promise.all([
       this.web3.eth.getBalance(accountAddress),
       this.dat.methods.balanceOf(accountAddress).call(),
-      this.whitelist.methods.approved(accountAddress).call(),
+      this.whitelist.methods.authorizedWalletToUserId(accountAddress).call(),
       this.currency
         ? this.currency.methods.balanceOf(accountAddress).call()
         : undefined,
@@ -285,7 +290,19 @@ module.exports = class CorgContracts {
     this.data.account.fairBalance = new BigNumber(fairBalance).shiftedBy(
       -this.data.decimals
     );
-    this.data.account.kycApproved = kycApproved;
+    const {
+      jurisdictionId,
+      totalTokensLocked,
+      startIndex,
+      endIndex
+    } = await this.whitelist.methods.getAuthorizedUserIdInfo(userId).call();
+    this.data.account.whitelist = {
+      userId,
+      jurisdictionId,
+      totalTokensLocked,
+      startIndex,
+      endIndex
+    };
     if (currencyBalance) {
       this.data.account.currencyBalance = new BigNumber(
         currencyBalance
@@ -301,10 +318,13 @@ module.exports = class CorgContracts {
       gas: gasRequirements.Currency.approve
     });
   }
-  async kyc(account, isApproved = true) {
-    await this._sendTx(this.whitelist.methods.approve(account, isApproved), {
-      gas: gasRequirements.Whitelist.approve
-    });
+  async approveNewUsers(accounts, jurisdictionIds) {
+    await this._sendTx(
+      this.whitelist.methods.approveNewUsers(accounts, jurisdictionIds),
+      {
+        gas: gasRequirements.Whitelist.approve
+      }
+    );
   }
   async estimateBuyValue(currencyAmount) {
     if (!currencyAmount) return 0;
