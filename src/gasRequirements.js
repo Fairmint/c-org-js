@@ -19,6 +19,6 @@ module.exports = {
     transfer: 60000
   },
   Whitelist: {
-    approve: 57000
+    approve: 570000
   }
 };

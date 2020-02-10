@@ -153,10 +153,35 @@ async function initializeWhitelist(
   const whitelist = await getWhitelist(web3, whitelistProxyAddress);
   await whitelist.initialize(datProxyAddress, { from });
 }
-async function whitelistApprove(web3, from, whitelistProxyAddress, account) {
+async function whitelistUpdateJurisdictionFlows(
+  web3,
+  from,
+  whitelistProxyAddress,
+  fromJurisdictionIds,
+  toJurisdictionIds,
+  lockupLengths
+) {
   web3 = new Web3(web3);
   const whitelist = await getWhitelist(web3, whitelistProxyAddress);
-  await whitelist.approve(account, true, {
+  await whitelist.updateJurisdictionFlows(
+    fromJurisdictionIds,
+    toJurisdictionIds,
+    lockupLengths,
+    {
+      from
+    }
+  );
+}
+async function whitelistApprove(
+  web3,
+  from,
+  whitelistProxyAddress,
+  account,
+  jurisdictionId
+) {
+  web3 = new Web3(web3);
+  const whitelist = await getWhitelist(web3, whitelistProxyAddress);
+  await whitelist.approveNewUsers([account], [jurisdictionId], {
     from
   });
 }
@@ -210,6 +235,7 @@ module.exports = {
   // 7)
   initializeWhitelist,
   // 8-9)
+  whitelistUpdateJurisdictionFlows,
   whitelistApprove,
   // 10)
   updateDat,
@@ -236,7 +262,7 @@ module.exports = {
     // 6.5) datProxy.initializePermit()
     // 7) whitelistProxy.initialize(datProxy.address)
     //   - display: initialized
-    // 8-9) whitelist.approve(control, beneficiary)
+    // 8-9) whitelist.approveNewUsers(control, beneficiary)
     // 10) datProxy.updateConfig(whitelistProxy.address, datUpdatableSettings)
     //   - no change (just display all settings)
     //   - include new control account address
@@ -276,18 +302,36 @@ module.exports = {
       whitelistProxyAddress,
       datProxyAddress
     );
+    await whitelistUpdateJurisdictionFlows(
+      web3,
+      options.control,
+      whitelistProxyAddress,
+      [1, 4, 4],
+      [4, 1, 4],
+      [1, 1, 1]
+    );
+    // Mint and burn is the DAT at jurisdiction 1
     await whitelistApprove(
       web3,
       options.control,
       whitelistProxyAddress,
-      options.control
+      web3.utils.padLeft(0, 40),
+      1
+    );
+    await whitelistApprove(
+      web3,
+      options.control,
+      whitelistProxyAddress,
+      options.control,
+      4
     );
     if (options.beneficiary && options.beneficiary !== options.control) {
       await whitelistApprove(
         web3,
         options.control,
         whitelistProxyAddress,
-        options.beneficiary
+        options.beneficiary,
+        4
       );
     }
 

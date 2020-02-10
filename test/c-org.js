@@ -40,7 +40,9 @@ contract("c-org", accounts => {
 
   describe("once approved", async () => {
     before(async () => {
-      await contracts.whitelist.approve(accounts[9], true, { from: control });
+      await contracts.whitelist.approveNewUsers([accounts[9]], [4], {
+        from: control
+      });
     });
 
     it("Can buy fair", async () => {

@@ -69,8 +69,8 @@ contract("corgContract", accounts => {
 
   describe("once approved", () => {
     beforeEach(async () => {
-      await corg.refreshAccountInfo(accounts[1]); // switch to control
-      await corg.kyc(accounts[3]);
+      await corg.refreshAccountInfo(control); // switch to default operator account
+      await corg.approveNewUsers([accounts[3]], [4]);
       await corg.refreshAccountInfo(accounts[3]); // switch to test account
       await corg.approve();
       await corg.buy("1", 100);
