@@ -1,24 +1,24 @@
 module.exports = {
   DecentralizedAutonomousTrust: {
     approve: 56000,
-    burn: 82000,
-    buy: 258000,
+    burn: 80000,
+    buy: 263000,
     close: 85000,
     decreaseAllowance: 40000,
     increaseAllowance: 57000,
     initialize: 429000,
-    pay: 147000,
+    pay: 152000,
     permit: 100000,
-    sell: 99000,
-    transfer: 77000,
-    transferFrom: 87000,
-    updateConfig: 176000
+    sell: 113000,
+    transfer: 107000,
+    transferFrom: 101000,
+    updateConfig: 190000
   },
   Currency: {
     approve: 70000,
     transfer: 60000
   },
   Whitelist: {
-    approve: 570000
+    approve: 500000
   }
 };
