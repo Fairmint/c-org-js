@@ -121,6 +121,7 @@ module.exports = class CorgContracts {
       version: "2", // reading version dynamically fails in the browser
       proxyImplementation,
       proxyAdmin,
+      whitelistProxyAddress: this.whitelist._address,
       whitelistProxyImplementation
     };
 
