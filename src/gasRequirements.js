@@ -9,7 +9,7 @@ module.exports = {
     initialize: 429000,
     pay: 152000,
     permit: 100000,
-    sell: 113000,
+    sell: 200000,
     transfer: 107000,
     transferFrom: 101000,
     updateConfig: 190000
