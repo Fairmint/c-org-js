@@ -67,6 +67,11 @@ contract("corgContract", accounts => {
     assert.equal(corg.data.marketSentiment.toFixed(), "Infinity");
   });
 
+  it("has unknown jurisdictionId by default", async () => {
+    await corg.refreshAccountInfo(accounts[3]);
+    assert.equal(corg.data.account.whitelist.jurisdictionId, 0);
+  });
+
   describe("once approved", () => {
     beforeEach(async () => {
       await corg.refreshAccountInfo(control); // switch to default operator account
@@ -104,6 +109,11 @@ contract("corgContract", accounts => {
     it("Now has a valid market sentiment", async () => {
       await corg.refreshOrgInfo();
       assert.notEqual(corg.data.marketSentiment.toFixed(), "Infinity");
+    });
+
+    it("has a jurisdictionId after", async () => {
+      await corg.refreshAccountInfo(accounts[3]);
+      assert.equal(corg.data.account.whitelist.jurisdictionId, 4);
     });
 
     describe("pay", () => {
