@@ -291,19 +291,27 @@ module.exports = class CorgContracts {
     this.data.account.fairBalance = new BigNumber(fairBalance).shiftedBy(
       -this.data.decimals
     );
-    const {
-      jurisdictionId,
-      totalTokensLocked,
-      startIndex,
-      endIndex
-    } = await this.whitelist.methods.getAuthorizedUserIdInfo(userId).call();
     this.data.account.whitelist = {
-      userId,
-      jurisdictionId,
-      totalTokensLocked,
-      startIndex,
-      endIndex
+      userId
     };
+    if (userId !== constants.ZERO_ADDRESS) {
+      const {
+        jurisdictionId,
+        totalTokensLocked,
+        startIndex,
+        endIndex
+      } = await this.whitelist.methods.getAuthorizedUserIdInfo(userId).call();
+      this.data.account.whitelist.jurisdictionId = jurisdictionId;
+      this.data.account.whitelist.totalTokensLocked = totalTokensLocked;
+      this.data.account.whitelist.startIndex = startIndex;
+      this.data.account.whitelist.endIndex = endIndex;
+    } else {
+      this.data.account.whitelist.jurisdictionId = 0;
+      this.data.account.whitelist.totalTokensLocked = 0;
+      this.data.account.whitelist.startIndex = 0;
+      this.data.account.whitelist.endIndex = 0;
+    }
+
     if (currencyBalance) {
       this.data.account.currencyBalance = new BigNumber(
         currencyBalance
