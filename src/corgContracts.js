@@ -109,7 +109,7 @@ module.exports = class CorgContracts {
       whitelistProxy.implementation()
     ]);
 
-    this.data = {
+    const data = {
       decimals: parseInt(decimals),
       currency: {
         decimals: parseInt(currencyDecimals),
@@ -125,16 +125,16 @@ module.exports = class CorgContracts {
       whitelistProxyImplementation
     };
 
-    this.data.buySlope = new BigNumber(buySlopeNum)
-      .shiftedBy(18 + 18 - this.data.currency.decimals)
+    data.buySlope = new BigNumber(buySlopeNum)
+      .shiftedBy(18 + 18 - data.currency.decimals)
       .div(buySlopeDen);
-    this.data.initGoal = new BigNumber(initGoal).shiftedBy(-this.data.decimals);
-    this.data.initReserve = new BigNumber(initReserve).shiftedBy(
-      -this.data.decimals
-    );
-    this.data.investmentReserve = new BigNumber(investmentReserve).div(
+    data.initGoal = new BigNumber(initGoal).shiftedBy(-data.decimals);
+    data.initReserve = new BigNumber(initReserve).shiftedBy(-data.decimals);
+    data.investmentReserve = new BigNumber(investmentReserve).div(
       constants.BASIS_POINTS_DEN
     );
+
+    this.data = data;
   }
 
   /**
@@ -170,65 +170,62 @@ module.exports = class CorgContracts {
       this.dat.methods.state().call()
     ]);
 
-    this.data.revenueCommitment = new BigNumber(revenueCommitment).div(
+    const data = this.data;
+    data.revenueCommitment = new BigNumber(revenueCommitment).div(
       constants.BASIS_POINTS_DEN
     );
-    this.data.totalSupply = new BigNumber(totalSupply).shiftedBy(
-      -this.data.decimals
+    data.totalSupply = new BigNumber(totalSupply).shiftedBy(-data.decimals);
+    data.burnedSupply = new BigNumber(burnedSupply).shiftedBy(-data.decimals);
+    data.beneficiary = beneficiary;
+    data.control = control;
+    data.feeCollector = feeCollector;
+    data.autoBurn = autoBurn;
+    data.buybackReserve = new BigNumber(buybackReserve).shiftedBy(
+      -data.currency.decimals
     );
-    this.data.burnedSupply = new BigNumber(burnedSupply).shiftedBy(
-      -this.data.decimals
+    data.fee = new BigNumber(fee).div(constants.BASIS_POINTS_DEN);
+    data.minInvestment = new BigNumber(minInvestment).shiftedBy(
+      -data.currency.decimals
     );
-    this.data.beneficiary = beneficiary;
-    this.data.control = control;
-    this.data.feeCollector = feeCollector;
-    this.data.autoBurn = autoBurn;
-    this.data.buybackReserve = new BigNumber(buybackReserve).shiftedBy(
-      -this.data.currency.decimals
-    );
-    this.data.fee = new BigNumber(fee).div(constants.BASIS_POINTS_DEN);
-    this.data.minInvestment = new BigNumber(minInvestment).shiftedBy(
-      -this.data.currency.decimals
-    );
-    this.data.openUntilAtLeast = openUntilAtLeast;
-    this.data.state = constants.STATES[stateId];
+    data.openUntilAtLeast = openUntilAtLeast;
+    data.state = constants.STATES[stateId];
 
     // mintPrice. The price of the last transaction. For the preview, we can
     // safely calculate it with (total_supply+burnt_supply-init_reserve)*buy_slope durning
     // RUN (or CLOSE).  price=init_goal*buy_slope/2 during INIT (or CANCEL)
-    if (this.data.state === "INIT" || this.data.state === "CANCEL") {
-      this.data.mintPrice = this.data.initGoal.times(this.data.buySlope).div(2);
+    if (data.state === "INIT" || data.state === "CANCEL") {
+      data.mintPrice = data.initGoal.times(data.buySlope).div(2);
     } else {
-      this.data.mintPrice = this.data.totalSupply
-        .plus(this.data.burnedSupply)
-        .minus(this.data.initReserve)
-        .times(this.data.buySlope);
+      data.mintPrice = data.totalSupply
+        .plus(data.burnedSupply)
+        .minus(data.initReserve)
+        .times(data.buySlope);
     }
 
     // lastTokenPrice will include 2nd hand markets in the future as well
     // at first it's always == mintPrice
-    this.data.lastTokenPrice = this.data.mintPrice;
+    data.lastTokenPrice = data.mintPrice;
 
     // redeemPrice
     // (total_supply+burnt_supply)*sell_slope + (sell_slope*burnt_supply^2)/(2*total_supply).
     // with sell_slope=((2*buyback_reserve)/((total_supply+burnt_supply)^2)))
     // (b^2 r)/(t (b + t)^2) + (2 r)/(b + t)
-    if (this.data.totalSupply.plus(this.data.burnedSupply).eq(0)) {
-      this.data.redeemPrice = new BigNumber(0);
+    if (data.totalSupply.plus(data.burnedSupply).eq(0)) {
+      data.redeemPrice = new BigNumber(0);
     } else {
-      this.data.redeemPrice = this.data.burnedSupply
+      data.redeemPrice = data.burnedSupply
         .pow(2)
-        .times(this.data.buybackReserve)
+        .times(data.buybackReserve)
         .div(
-          this.data.burnedSupply
-            .plus(this.data.totalSupply)
+          data.burnedSupply
+            .plus(data.totalSupply)
             .pow(2)
-            .times(this.data.totalSupply)
+            .times(data.totalSupply)
         )
         .plus(
-          this.data.buybackReserve
+          data.buybackReserve
             .times(2)
-            .div(this.data.burnedSupply.plus(this.data.totalSupply))
+            .div(data.burnedSupply.plus(data.totalSupply))
         );
     }
 
@@ -242,24 +239,24 @@ module.exports = class CorgContracts {
      * source: ((t+b)*s)/((2*r/((t+b)^2))*(t+b)+((2*r/((t+b)^2))*b^2)/(2*t))
      * alternate: s t (b + t)^3 / (r (b^2 + 2 b t + 2 t^2))
      */
-    if (this.data.state === "RUN") {
-      this.data.marketSentiment = this.data.buySlope
-        .times(this.data.totalSupply)
-        .times(this.data.burnedSupply.plus(this.data.totalSupply).pow(3))
+    if (data.state === "RUN") {
+      data.marketSentiment = data.buySlope
+        .times(data.totalSupply)
+        .times(data.burnedSupply.plus(data.totalSupply).pow(3))
         .div(
-          this.data.buybackReserve.times(
-            this.data.burnedSupply
+          data.buybackReserve.times(
+            data.burnedSupply
               .pow(2)
-              .plus(
-                this.data.burnedSupply.times(2).times(this.data.totalSupply)
-              )
-              .plus(this.data.totalSupply.pow(2).times(2))
+              .plus(data.burnedSupply.times(2).times(data.totalSupply))
+              .plus(data.totalSupply.pow(2).times(2))
           )
         );
     } else {
       // This value should not be displayed unless in the RUN state
-      this.data.marketSentiment = null;
+      data.marketSentiment = null;
     }
+
+    this.data = data;
   }
 
   /**
@@ -267,7 +264,8 @@ module.exports = class CorgContracts {
    * @dev These values may change anytime the user has a transaction mined.
    */
   async refreshAccountInfo(accountAddress) {
-    this.data.account = { address: accountAddress };
+    const data = this.data;
+    data.account = { address: accountAddress };
     const [
       ethBalance,
       fairBalance,
@@ -287,11 +285,11 @@ module.exports = class CorgContracts {
             .call()
         : undefined
     ]);
-    this.data.account.ethBalance = new BigNumber(ethBalance).shiftedBy(-18);
-    this.data.account.fairBalance = new BigNumber(fairBalance).shiftedBy(
-      -this.data.decimals
+    data.account.ethBalance = new BigNumber(ethBalance).shiftedBy(-18);
+    data.account.fairBalance = new BigNumber(fairBalance).shiftedBy(
+      -data.decimals
     );
-    this.data.account.whitelist = {
+    data.account.whitelist = {
       userId
     };
     if (userId !== constants.ZERO_ADDRESS) {
@@ -301,25 +299,27 @@ module.exports = class CorgContracts {
         startIndex,
         endIndex
       } = await this.whitelist.methods.getAuthorizedUserIdInfo(userId).call();
-      this.data.account.whitelist.jurisdictionId = jurisdictionId;
-      this.data.account.whitelist.totalTokensLocked = totalTokensLocked;
-      this.data.account.whitelist.startIndex = startIndex;
-      this.data.account.whitelist.endIndex = endIndex;
+      data.account.whitelist.jurisdictionId = jurisdictionId;
+      data.account.whitelist.totalTokensLocked = totalTokensLocked;
+      data.account.whitelist.startIndex = startIndex;
+      data.account.whitelist.endIndex = endIndex;
     } else {
-      this.data.account.whitelist.jurisdictionId = 0;
-      this.data.account.whitelist.totalTokensLocked = 0;
-      this.data.account.whitelist.startIndex = 0;
-      this.data.account.whitelist.endIndex = 0;
+      data.account.whitelist.jurisdictionId = 0;
+      data.account.whitelist.totalTokensLocked = 0;
+      data.account.whitelist.startIndex = 0;
+      data.account.whitelist.endIndex = 0;
     }
 
     if (currencyBalance) {
-      this.data.account.currencyBalance = new BigNumber(
-        currencyBalance
-      ).shiftedBy(-this.data.currency.decimals);
-      this.data.account.allowance = new BigNumber(allowance).shiftedBy(
-        -this.data.currency.decimals
+      data.account.currencyBalance = new BigNumber(currencyBalance).shiftedBy(
+        -data.currency.decimals
+      );
+      data.account.allowance = new BigNumber(allowance).shiftedBy(
+        -data.currency.decimals
       );
     }
+
+    this.data = data;
   }
 
   async approve() {
