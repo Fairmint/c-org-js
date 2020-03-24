@@ -170,7 +170,7 @@ module.exports = class CorgContracts {
       this.dat.methods.state().call()
     ]);
 
-    const data = this.data;
+    const data = JSON.parse(JSON.stringify(this.data));
     data.revenueCommitment = new BigNumber(revenueCommitment).div(
       constants.BASIS_POINTS_DEN
     );
@@ -264,7 +264,7 @@ module.exports = class CorgContracts {
    * @dev These values may change anytime the user has a transaction mined.
    */
   async refreshAccountInfo(accountAddress) {
-    const data = this.data;
+    const data = JSON.parse(JSON.stringify(this.data));
     data.account = { address: accountAddress };
     const [
       ethBalance,
