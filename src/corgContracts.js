@@ -267,7 +267,7 @@ module.exports = class CorgContracts {
    * @dev These values may change anytime the user has a transaction mined.
    */
   async refreshAccountInfo(accountAddress) {
-    this.data.account = { address: accountAddress };
+    const account = { address: accountAddress };
     const [
       ethBalance,
       fairBalance,
@@ -287,11 +287,11 @@ module.exports = class CorgContracts {
             .call()
         : undefined
     ]);
-    this.data.account.ethBalance = new BigNumber(ethBalance).shiftedBy(-18);
-    this.data.account.fairBalance = new BigNumber(fairBalance).shiftedBy(
+    account.ethBalance = new BigNumber(ethBalance).shiftedBy(-18);
+    account.fairBalance = new BigNumber(fairBalance).shiftedBy(
       -this.data.decimals
     );
-    this.data.account.whitelist = {
+    account.whitelist = {
       userId
     };
     if (userId !== constants.ZERO_ADDRESS) {
@@ -301,25 +301,27 @@ module.exports = class CorgContracts {
         startIndex,
         endIndex
       } = await this.whitelist.methods.getAuthorizedUserIdInfo(userId).call();
-      this.data.account.whitelist.jurisdictionId = jurisdictionId;
-      this.data.account.whitelist.totalTokensLocked = totalTokensLocked;
-      this.data.account.whitelist.startIndex = startIndex;
-      this.data.account.whitelist.endIndex = endIndex;
+      account.whitelist.jurisdictionId = jurisdictionId;
+      account.whitelist.totalTokensLocked = totalTokensLocked;
+      account.whitelist.startIndex = startIndex;
+      account.whitelist.endIndex = endIndex;
     } else {
-      this.data.account.whitelist.jurisdictionId = 0;
-      this.data.account.whitelist.totalTokensLocked = 0;
-      this.data.account.whitelist.startIndex = 0;
-      this.data.account.whitelist.endIndex = 0;
+      account.whitelist.jurisdictionId = 0;
+      account.whitelist.totalTokensLocked = 0;
+      account.whitelist.startIndex = 0;
+      account.whitelist.endIndex = 0;
     }
 
     if (currencyBalance) {
-      this.data.account.currencyBalance = new BigNumber(
-        currencyBalance
-      ).shiftedBy(-this.data.currency.decimals);
-      this.data.account.allowance = new BigNumber(allowance).shiftedBy(
+      account.currencyBalance = new BigNumber(currencyBalance).shiftedBy(
+        -this.data.currency.decimals
+      );
+      account.allowance = new BigNumber(allowance).shiftedBy(
         -this.data.currency.decimals
       );
     }
+
+    this.data.account = account;
   }
 
   async approve() {
