@@ -1,10 +1,11 @@
 const { Uniswap } = require("../");
-
+const Networks = require("../src/networks");
 let uniswap;
 
 contract("uniswap ethToUsdc", () => {
   before(async () => {
-    uniswap = new Uniswap();
+    const network = Networks.find(e => e.name === "mainnet");
+    uniswap = new Uniswap(network.provider);
     await uniswap.init();
   });
 
