@@ -1,11 +1,12 @@
 const { Uniswap } = require("../");
-
+const Networks = require("../src/networks");
 let uniswap;
 
 contract("uniswap ethToUsdc", () => {
   before(async () => {
+    const network = Networks.find(e => e.name === "mainnet");
     uniswap = new Uniswap();
-    await uniswap.init();
+    await uniswap.init(network.provider);
   });
 
   it("Can read ethToUSDC value", async () => {

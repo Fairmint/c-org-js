@@ -1,12 +1,10 @@
 const Web3 = require("web3");
 const BigNumber = require("bignumber.js");
-const Networks = require("./networks");
 const { protocols, tokens } = require("hardlydifficult-ethereum-contracts");
 
 module.exports = class Uniswap {
-  async init() {
-    const network = Networks.find(e => e.name === "mainnet");
-    const web3 = new Web3(network.provider);
+  async init(web3Provider) {
+    const web3 = new Web3(web3Provider);
     const uniswap = await protocols.uniswap.getFactory(
       web3,
       protocols.uniswap.mainnetFactoryAddress
