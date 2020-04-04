@@ -5,8 +5,8 @@ let uniswap;
 contract("uniswap ethToUsdc", () => {
   before(async () => {
     const network = Networks.find(e => e.name === "mainnet");
-    uniswap = new Uniswap(network.provider);
-    await uniswap.init();
+    uniswap = new Uniswap();
+    await uniswap.init(network.provider);
   });
 
   it("Can read ethToUSDC value", async () => {
