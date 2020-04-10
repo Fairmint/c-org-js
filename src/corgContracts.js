@@ -23,15 +23,15 @@ module.exports = class CorgContracts {
         Object.assign(
           {
             from: this.data.account.address,
-            gasPrice: this.web3.utils.toWei("1.1", "Gwei")
+            gasPrice: this.web3.utils.toWei("1.1", "Gwei"),
           },
           options
         )
       )
-        .on("transactionHash", tx => {
+        .on("transactionHash", (tx) => {
           resolve(tx);
         })
-        .on("error", error => {
+        .on("error", (error) => {
           console.log(error);
           reject(error);
         });
@@ -44,7 +44,7 @@ module.exports = class CorgContracts {
   async init() {
     const [currencyAddress, whitelistAddress] = await Promise.all([
       this.dat.methods.currency().call(),
-      this.dat.methods.whitelist().call()
+      this.dat.methods.whitelist().call(),
     ]);
     this.currency =
       currencyAddress && currencyAddress !== this.web3.utils.padLeft(0, 40)
@@ -59,20 +59,20 @@ module.exports = class CorgContracts {
 
     try {
       // This reverts the ABI just in case it was previously changed in memory
-      abi.erc20.find(e => e.name === "name").outputs[0].type = "string";
-      abi.erc20.find(e => e.name === "symbol").outputs[0].type = "string";
+      abi.erc20.find((e) => e.name === "name").outputs[0].type = "string";
+      abi.erc20.find((e) => e.name === "symbol").outputs[0].type = "string";
       [currencyName, currencySymbol] = await Promise.all([
         this.currency ? this.currency.methods.name().call() : "Ether",
-        this.currency ? this.currency.methods.symbol().call() : "ETH"
+        this.currency ? this.currency.methods.symbol().call() : "ETH",
       ]);
     } catch (e) {
       // Some tokens, such as DAI, return bytes32 instead of a string
-      abi.erc20.find(e => e.name === "name").outputs[0].type = "bytes32";
-      abi.erc20.find(e => e.name === "symbol").outputs[0].type = "bytes32";
+      abi.erc20.find((e) => e.name === "name").outputs[0].type = "bytes32";
+      abi.erc20.find((e) => e.name === "symbol").outputs[0].type = "bytes32";
       this.currency = new this.web3.eth.Contract(abi.erc20, currencyAddress);
       [currencyName, currencySymbol] = await Promise.all([
         this.currency.methods.name().call(),
-        this.currency.methods.symbol().call()
+        this.currency.methods.symbol().call(),
       ]);
       currencySymbol = this.web3.utils.hexToUtf8(currencySymbol);
       currencyName = this.web3.utils.hexToUtf8(currencyName);
@@ -93,7 +93,7 @@ module.exports = class CorgContracts {
       investmentReserve,
       proxyImplementation,
       proxyAdmin,
-      whitelistProxyImplementation
+      whitelistProxyImplementation,
     ] = await Promise.all([
       this.dat.methods.decimals().call(),
       this.currency ? this.currency.methods.decimals().call() : 18,
@@ -106,7 +106,7 @@ module.exports = class CorgContracts {
       this.dat.methods.investmentReserveBasisPoints().call(),
       datProxy.implementation(),
       datProxy.admin(),
-      whitelistProxy.implementation()
+      whitelistProxy.implementation(),
     ]);
 
     this.data = {
@@ -114,7 +114,7 @@ module.exports = class CorgContracts {
       currency: {
         decimals: parseInt(currencyDecimals),
         name: currencyName,
-        symbol: currencySymbol
+        symbol: currencySymbol,
       },
       name,
       symbol,
@@ -122,7 +122,7 @@ module.exports = class CorgContracts {
       proxyImplementation,
       proxyAdmin,
       whitelistProxyAddress: this.whitelist._address,
-      whitelistProxyImplementation
+      whitelistProxyImplementation,
     };
 
     this.data.buySlope = new BigNumber(buySlopeNum)
@@ -154,7 +154,7 @@ module.exports = class CorgContracts {
       revenueCommitment,
       minInvestment,
       openUntilAtLeast,
-      stateId
+      stateId,
     ] = await Promise.all([
       this.dat.methods.totalSupply().call(),
       this.dat.methods.burnedSupply().call(),
@@ -167,7 +167,7 @@ module.exports = class CorgContracts {
       this.dat.methods.revenueCommitmentBasisPoints().call(),
       this.dat.methods.minInvestment().call(),
       this.dat.methods.openUntilAtLeast().call(),
-      this.dat.methods.state().call()
+      this.dat.methods.state().call(),
     ]);
 
     this.data.revenueCommitment = new BigNumber(revenueCommitment).div(
@@ -273,7 +273,7 @@ module.exports = class CorgContracts {
       fairBalance,
       userId,
       currencyBalance,
-      allowance
+      allowance,
     ] = await Promise.all([
       this.web3.eth.getBalance(accountAddress),
       this.dat.methods.balanceOf(accountAddress).call(),
@@ -285,21 +285,21 @@ module.exports = class CorgContracts {
         ? this.currency.methods
             .allowance(accountAddress, this.dat._address)
             .call()
-        : undefined
+        : undefined,
     ]);
     account.ethBalance = new BigNumber(ethBalance).shiftedBy(-18);
     account.fairBalance = new BigNumber(fairBalance).shiftedBy(
       -this.data.decimals
     );
     account.whitelist = {
-      userId
+      userId,
     };
     if (userId !== constants.ZERO_ADDRESS) {
       const {
         jurisdictionId,
         totalTokensLocked,
         startIndex,
-        endIndex
+        endIndex,
       } = await this.whitelist.methods.getAuthorizedUserIdInfo(userId).call();
       account.whitelist.jurisdictionId = jurisdictionId;
       account.whitelist.totalTokensLocked = totalTokensLocked;
@@ -326,14 +326,14 @@ module.exports = class CorgContracts {
 
   async approve() {
     await this._sendTx(this.currency.methods.approve(this.dat._address, -1), {
-      gas: gasRequirements.Currency.approve
+      gas: gasRequirements.Currency.approve,
     });
   }
   async approveNewUsers(accounts, jurisdictionIds) {
     await this._sendTx(
       this.whitelist.methods.approveNewUsers(accounts, jurisdictionIds),
       {
-        gas: gasRequirements.Whitelist.approve
+        gas: gasRequirements.Whitelist.approve,
       }
     );
   }
@@ -374,7 +374,7 @@ module.exports = class CorgContracts {
         minBuyValue.toFixed()
       ),
       {
-        gas: gasRequirements.DecentralizedAutonomousTrust.buy
+        gas: gasRequirements.DecentralizedAutonomousTrust.buy,
       }
     );
   }
@@ -422,7 +422,7 @@ module.exports = class CorgContracts {
         minSellValue.toFixed()
       ),
       {
-        gas: gasRequirements.DecentralizedAutonomousTrust.sell
+        gas: gasRequirements.DecentralizedAutonomousTrust.sell,
       }
     );
   }
@@ -449,7 +449,7 @@ module.exports = class CorgContracts {
     return await this._sendTx(
       this.dat.methods.pay(sendTo, currencyValue.toFixed()),
       {
-        gas: gasRequirements.DecentralizedAutonomousTrust.pay
+        gas: gasRequirements.DecentralizedAutonomousTrust.pay,
       }
     );
   }
@@ -459,7 +459,7 @@ module.exports = class CorgContracts {
   }
   async close() {
     return await this._sendTx(this.dat.methods.close(), {
-      gas: gasRequirements.DecentralizedAutonomousTrust.close
+      gas: gasRequirements.DecentralizedAutonomousTrust.close,
     });
   }
   async burn(tokenAmount) {
@@ -467,7 +467,7 @@ module.exports = class CorgContracts {
       .shiftedBy(this.data.decimals)
       .dp(0);
     return await this._sendTx(this.dat.methods.burn(tokenValue.toFixed()), {
-      gas: gasRequirements.DecentralizedAutonomousTrust.burn
+      gas: gasRequirements.DecentralizedAutonomousTrust.burn,
     });
   }
   /**
@@ -482,45 +482,45 @@ module.exports = class CorgContracts {
       { name: "name", type: "string" },
       { name: "version", type: "string" },
       { name: "chainId", type: "uint256" },
-      { name: "verifyingContract", type: "address" }
+      { name: "verifyingContract", type: "address" },
     ];
     const permit = [
       { name: "holder", type: "address" },
       { name: "spender", type: "address" },
       { name: "nonce", type: "uint256" },
       { name: "expiry", type: "uint256" },
-      { name: "allowed", type: "bool" }
+      { name: "allowed", type: "bool" },
     ];
     const domainData = {
       name: this.data.name,
       version: this.data.version,
       chainId: parseInt(web3.version.network, 10),
-      verifyingContract: this.dat._address
+      verifyingContract: this.dat._address,
     };
     const message = {
       holder: this.data.account.address,
       spender,
       nonce: await this.dat.methods.nonces(this.data.account.address).call(),
       expiry,
-      allowed
+      allowed,
     };
     const data = JSON.stringify({
       types: {
         EIP712Domain: domain,
-        Permit: permit
+        Permit: permit,
       },
       domain: domainData,
       primaryType: "Permit",
-      message
+      message,
     });
     return await new Promise((reject, resolve) => {
       web3.currentProvider.sendAsync(
         {
           method: "eth_signTypedData_v4",
           params: [this.data.account.address, data],
-          from: this.data.account.address
+          from: this.data.account.address,
         },
-        function(err, result) {
+        function (err, result) {
           if (err) {
             return reject(err);
           }
@@ -534,8 +534,8 @@ module.exports = class CorgContracts {
               signature: {
                 v,
                 r,
-                s
-              }
+                s,
+              },
             })
           );
         }
@@ -555,7 +555,7 @@ module.exports = class CorgContracts {
         signature.s
       ),
       {
-        gas: gasRequirements.DecentralizedAutonomousTrust.permit
+        gas: gasRequirements.DecentralizedAutonomousTrust.permit,
       }
     );
   }

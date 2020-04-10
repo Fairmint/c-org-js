@@ -1,7 +1,7 @@
 const { Corg } = require("..");
 const truffleAssert = require("truffle-assertions");
 
-contract("c-org", accounts => {
+contract("c-org", (accounts) => {
   const beneficiary = accounts[0];
   const control = accounts[1];
   const feeCollector = accounts[2];
@@ -24,7 +24,7 @@ contract("c-org", accounts => {
       symbol: "FAIR",
       control,
       beneficiary,
-      feeCollector
+      feeCollector,
     });
   });
 
@@ -32,7 +32,7 @@ contract("c-org", accounts => {
     await truffleAssert.fails(
       contracts.dat.buy(accounts[9], "10000000000000", 1, {
         from: accounts[9],
-        value: "10000000000000"
+        value: "10000000000000",
       }),
       "revert"
     );
@@ -41,14 +41,14 @@ contract("c-org", accounts => {
   describe("once approved", async () => {
     before(async () => {
       await contracts.whitelist.approveNewUsers([accounts[9]], [4], {
-        from: control
+        from: control,
       });
     });
 
     it("Can buy fair", async () => {
       await contracts.dat.buy(accounts[9], "10000000000000", 1, {
         from: accounts[9],
-        value: "10000000000000"
+        value: "10000000000000",
       });
 
       const balance = await contracts.dat.balanceOf(accounts[9]);

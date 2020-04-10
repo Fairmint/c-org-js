@@ -4,7 +4,7 @@ let uniswap;
 
 contract("uniswap ethToUsdc", () => {
   before(async () => {
-    const network = Networks.find(e => e.name === "mainnet");
+    const network = Networks.find((e) => e.name === "mainnet");
     uniswap = new Uniswap();
     await uniswap.init(network.provider);
   });

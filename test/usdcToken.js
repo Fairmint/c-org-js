@@ -3,7 +3,7 @@ const { tokens } = require("hardlydifficult-ethereum-contracts");
 const { CorgContracts } = require("../index");
 const { Corg } = require("..");
 
-contract("usdcToken", accounts => {
+contract("usdcToken", (accounts) => {
   let usdc;
   let corg;
 
@@ -17,7 +17,7 @@ contract("usdcToken", accounts => {
     // Mint test tokens
     for (let i = 0; i < accounts.length - 1; i++) {
       await usdc.mint(accounts[i], "1000000000000000000000000", {
-        from: accounts[0]
+        from: accounts[0],
       });
     }
 
@@ -35,7 +35,7 @@ contract("usdcToken", accounts => {
       openUntilAtLeast: "0",
       name: "FAIR token",
       symbol: "FAIR",
-      control: accounts[0]
+      control: accounts[0],
     });
 
     corg = new CorgContracts(
