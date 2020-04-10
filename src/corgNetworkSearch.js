@@ -8,7 +8,7 @@ async function _isNativeANetworkMatch(network, nativeWeb3) {
   try {
     const [networkId, newNetworkId] = await Promise.all([
       nativeWeb3.eth.net.getId(),
-      web3.eth.net.getId()
+      web3.eth.net.getId(),
     ]);
 
     if (networkId.toString() === newNetworkId.toString()) {
@@ -38,7 +38,7 @@ async function _getContractsFrom(network, nativeWeb3, address) {
 
     return new CorgContracts(web3, address, {
       isNetworkMatch,
-      networkName: network.name
+      networkName: network.name,
     });
   } catch (e) {
     // ignore

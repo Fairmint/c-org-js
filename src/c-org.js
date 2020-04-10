@@ -5,7 +5,7 @@ const Web3 = require("web3");
 const BigNumber = require("bignumber.js");
 
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 async function getDat(web3, datAddress) {
   web3 = new Web3(web3);
@@ -40,18 +40,18 @@ function deployContract(web3, from, abi, options) {
   web3 = new Web3(web3);
   return new Promise((resolve, reject) => {
     const txObj = new web3.eth.Contract(abi).deploy(options);
-    return txObj.estimateGas().then(gas => {
+    return txObj.estimateGas().then((gas) => {
       gas = new BigNumber(gas);
       gas = gas.times(1.1).dp(0, BigNumber.ROUND_UP); // +10% in case estimate was off
       return txObj
         .send({
           from,
-          gas: gas.toFixed()
+          gas: gas.toFixed(),
         })
-        .on("transactionHash", tx => {
+        .on("transactionHash", (tx) => {
           return resolve(tx);
         })
-        .on("error", error => {
+        .on("error", (error) => {
           return reject(error);
         });
     });
@@ -64,20 +64,20 @@ function deployDatTemplate(web3, from) {
 function deployWhitelistTemplate(web3, from) {
   web3 = new Web3(web3);
   return deployContract(web3, from, cOrgAbi.whitelist, {
-    data: cOrgBytecode.whitelist
+    data: cOrgBytecode.whitelist,
   });
 }
 function deployProxyAdmin(web3, from) {
   web3 = new Web3(web3);
   return deployContract(web3, from, cOrgAbi.proxyAdmin, {
-    data: cOrgBytecode.proxyAdmin
+    data: cOrgBytecode.proxyAdmin,
   });
 }
 function deployProxy(web3, from, templateAddress, adminAddress) {
   web3 = new Web3(web3);
   return deployContract(web3, from, cOrgAbi.proxy, {
     data: cOrgBytecode.proxy,
-    arguments: [templateAddress, adminAddress, "0x"]
+    arguments: [templateAddress, adminAddress, "0x"],
   });
 }
 async function initializeDat(web3, from, datProxyAddress, options) {
@@ -91,7 +91,7 @@ async function initializeDat(web3, from, datProxyAddress, options) {
       buySlopeDen: "100000000000000000000",
       investmentReserveBasisPoints: "1000",
       name: "FAIR token",
-      symbol: "FAIR"
+      symbol: "FAIR",
     },
     options
   );
@@ -123,7 +123,7 @@ async function updateDat(web3, from, datProxyAddress, options) {
       minInvestment: "1",
       openUntilAtLeast: "0",
       beneficiary: options.control,
-      feeCollector: options.control
+      feeCollector: options.control,
     },
     options
   );
@@ -139,7 +139,7 @@ async function updateDat(web3, from, datProxyAddress, options) {
     callOptions.minInvestment,
     callOptions.openUntilAtLeast,
     {
-      from
+      from,
     }
   );
 }
@@ -168,7 +168,7 @@ async function whitelistUpdateJurisdictionFlows(
     toJurisdictionIds,
     lockupLengths,
     {
-      from
+      from,
     }
   );
 }
@@ -182,7 +182,7 @@ async function whitelistApprove(
   web3 = new Web3(web3);
   const whitelist = await getWhitelist(web3, whitelistProxyAddress);
   await whitelist.approveNewUsers([account], [jurisdictionId], {
-    from
+    from,
   });
 }
 async function whitelistTransferOwnership(
@@ -194,7 +194,7 @@ async function whitelistTransferOwnership(
   web3 = new Web3(web3);
   const whitelist = await getWhitelist(web3, whitelistProxyAddress);
   await whitelist.transferOwnership(newOwner, {
-    from
+    from,
   });
 }
 async function proxyAdminTransferOwnership(
@@ -343,5 +343,5 @@ module.exports = {
   },
   getDat,
   getWhitelist,
-  proxyAdminUpgrade
+  proxyAdminUpgrade,
 };

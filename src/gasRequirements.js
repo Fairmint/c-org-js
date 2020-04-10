@@ -12,13 +12,13 @@ module.exports = {
     sell: 200000,
     transfer: 107000,
     transferFrom: 101000,
-    updateConfig: 190000
+    updateConfig: 190000,
   },
   Currency: {
     approve: 70000,
-    transfer: 60000
+    transfer: 60000,
   },
   Whitelist: {
-    approve: 500000
-  }
+    approve: 500000,
+  },
 };

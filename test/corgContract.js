@@ -2,7 +2,7 @@ const Web3 = require("web3");
 const { tokens } = require("hardlydifficult-ethereum-contracts");
 const { Corg, CorgContracts, constants } = require("..");
 
-contract("corgContract", accounts => {
+contract("corgContract", (accounts) => {
   const beneficiary = accounts[0];
   const control = accounts[1];
   const feeCollector = accounts[2];
@@ -18,7 +18,7 @@ contract("corgContract", accounts => {
     // Mint test tokens
     for (let i = 0; i < accounts.length - 1; i++) {
       await usdc.mint(accounts[i], "1000000000000000000000000", {
-        from: accounts[0]
+        from: accounts[0],
       });
     }
 
@@ -38,7 +38,7 @@ contract("corgContract", accounts => {
       symbol: "FAIR",
       control,
       beneficiary,
-      feeCollector
+      feeCollector,
     });
     corg = new CorgContracts(
       new Web3(web3.currentProvider),

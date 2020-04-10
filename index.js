@@ -5,5 +5,5 @@ module.exports = {
   CorgNetworkSearch: require("./src/corgNetworkSearch"),
   CorgContracts: require("./src/corgContracts"),
   GasRequirements: require("./src/gasRequirements"),
-  Uniswap: require("./src/uniswap.js")
+  Uniswap: require("./src/uniswap.js"),
 };

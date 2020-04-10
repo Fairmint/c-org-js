@@ -2,7 +2,7 @@ const { tokens } = require("hardlydifficult-ethereum-contracts");
 const { CorgNetworkSearch, Networks } = require("../index");
 const { Corg } = require("..");
 
-contract("corgNetworkSearch", accounts => {
+contract("corgNetworkSearch", (accounts) => {
   const beneficiary = accounts[0];
   const control = accounts[1];
   const feeCollector = accounts[2];
@@ -18,7 +18,7 @@ contract("corgNetworkSearch", accounts => {
     // Mint test tokens
     for (let i = 0; i < accounts.length - 1; i++) {
       await usdc.mint(accounts[i], "1000000000000000000000000", {
-        from: accounts[0]
+        from: accounts[0],
       });
     }
 
@@ -38,7 +38,7 @@ contract("corgNetworkSearch", accounts => {
       symbol: "FAIR",
       control,
       beneficiary,
-      feeCollector
+      feeCollector,
     });
     const networkSearch = new CorgNetworkSearch(Networks);
     corg = await networkSearch.getContracts(

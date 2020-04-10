@@ -3,7 +3,7 @@ const { constants, tokens } = require("hardlydifficult-ethereum-contracts");
 const { CorgContracts } = require("../index");
 const { Corg } = require("..");
 
-contract("saiToken", accounts => {
+contract("saiToken", (accounts) => {
   let sai;
   let corg;
 
@@ -14,7 +14,7 @@ contract("saiToken", accounts => {
     for (let i = 0; i < accounts.length - 1; i++) {
       await sai.mint(accounts[i], "1000000000000000000000000", {
         from: accounts[0],
-        gas: constants.MAX_GAS
+        gas: constants.MAX_GAS,
       });
     }
 
@@ -32,7 +32,7 @@ contract("saiToken", accounts => {
       openUntilAtLeast: "0",
       name: "FAIR token",
       symbol: "FAIR",
-      control: accounts[0]
+      control: accounts[0],
     });
 
     corg = new CorgContracts(
