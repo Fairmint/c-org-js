@@ -82,6 +82,15 @@ contract("corgContract", (accounts) => {
       await corg.refreshOrgInfo();
     });
 
+    it("Can specify custom call options", async () => {
+      const gasPrice = web3.utils.toWei("4", "gwei");
+      const txHash = await corg.buy("1", 100, undefined, {
+        gasPrice,
+      });
+      const tx = await web3.eth.getTransaction(txHash);
+      assert.equal(tx.gasPrice, gasPrice);
+    });
+
     it("Has a mintPrice", async () => {
       assert(corg.data.mintPrice.gt(0));
     });
