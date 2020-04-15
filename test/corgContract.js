@@ -82,6 +82,31 @@ contract("corgContract", (accounts) => {
       await corg.refreshOrgInfo();
     });
 
+    it("Can specify custom call options", async () => {
+      const gasPrice = web3.utils.toWei("4", "gwei");
+      const txHash = await corg.buy("1", 100, undefined, {
+        gasPrice,
+      });
+      const tx = await web3.eth.getTransaction(txHash);
+      assert.equal(tx.gasPrice, gasPrice);
+    });
+
+    it("Can specify a custom nonce", async () => {
+      let error;
+      try {
+        await corg.buy("1", 100, undefined, {
+          nonce: 42,
+        });
+      } catch (err) {
+        error = err;
+      }
+      assert(
+        error.message.includes(
+          "Returned error: the tx doesn't have the correct nonce. account has nonce of:"
+        )
+      );
+    });
+
     it("Has a mintPrice", async () => {
       assert(corg.data.mintPrice.gt(0));
     });
