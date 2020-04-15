@@ -324,17 +324,26 @@ module.exports = class CorgContracts {
     this.data.account = account;
   }
 
-  async approve() {
-    await this._sendTx(this.currency.methods.approve(this.dat._address, -1), {
-      gas: gasRequirements.Currency.approve,
-    });
+  async approve(options) {
+    return await this._sendTx(
+      this.currency.methods.approve(this.dat._address, -1),
+      Object.assign(
+        {
+          gas: gasRequirements.Currency.approve,
+        },
+        options
+      )
+    );
   }
-  async approveNewUsers(accounts, jurisdictionIds) {
-    await this._sendTx(
+  async approveNewUsers(accounts, jurisdictionIds, options) {
+    return await this._sendTx(
       this.whitelist.methods.approveNewUsers(accounts, jurisdictionIds),
-      {
-        gas: gasRequirements.Whitelist.approve,
-      }
+      Object.assign(
+        {
+          gas: gasRequirements.Whitelist.approve,
+        },
+        options
+      )
     );
   }
   async estimateBuyValue(currencyAmount) {
@@ -347,7 +356,7 @@ module.exports = class CorgContracts {
       .call();
     return new BigNumber(buyValue).shiftedBy(-this.data.decimals);
   }
-  async buy(currencyAmount, maxSlipPercent, sendToAddress = undefined) {
+  async buy(currencyAmount, maxSlipPercent, sendToAddress, options) {
     let sendTo;
     if (sendToAddress && sendToAddress !== this.web3.utils.padLeft(0, 40)) {
       sendTo = sendToAddress;
@@ -373,9 +382,12 @@ module.exports = class CorgContracts {
         currencyValue.toFixed(),
         minBuyValue.toFixed()
       ),
-      {
-        gas: gasRequirements.DecentralizedAutonomousTrust.buy,
-      }
+      Object.assign(
+        {
+          gas: gasRequirements.DecentralizedAutonomousTrust.buy,
+        },
+        options
+      )
     );
   }
   async estimateSellValue(tokenAmount) {
@@ -391,7 +403,7 @@ module.exports = class CorgContracts {
       return new BigNumber(0);
     }
   }
-  async sell(tokenAmount, maxSlipPercent, sendToAddress = undefined) {
+  async sell(tokenAmount, maxSlipPercent, sendToAddress, options) {
     tokenAmount = new BigNumber(tokenAmount);
     const estimateSellValue = await this.estimateSellValue(
       tokenAmount.toFixed()
@@ -421,9 +433,12 @@ module.exports = class CorgContracts {
         tokenValue.toFixed(),
         minSellValue.toFixed()
       ),
-      {
-        gas: gasRequirements.DecentralizedAutonomousTrust.sell,
-      }
+      Object.assign(
+        {
+          gas: gasRequirements.DecentralizedAutonomousTrust.sell,
+        },
+        options
+      )
     );
   }
   async estimatePayValue(currencyAmount) {
@@ -435,7 +450,7 @@ module.exports = class CorgContracts {
       .call();
     return new BigNumber(payValue).shiftedBy(-this.data.decimals);
   }
-  async pay(currencyAmount, sendToAddress = undefined) {
+  async pay(currencyAmount, sendToAddress, options) {
     currencyAmount = new BigNumber(currencyAmount);
     let sendTo;
     if (sendToAddress && sendToAddress !== this.web3.utils.padLeft(0, 40)) {
@@ -448,27 +463,42 @@ module.exports = class CorgContracts {
       .dp(0);
     return await this._sendTx(
       this.dat.methods.pay(sendTo, currencyValue.toFixed()),
-      {
-        gas: gasRequirements.DecentralizedAutonomousTrust.pay,
-      }
+      Object.assign(
+        {
+          gas: gasRequirements.DecentralizedAutonomousTrust.pay,
+        },
+        options
+      )
     );
   }
   async estimateExitFee() {
     const exitFee = await this.dat.methods.estimateExitFee("0").call();
     return new BigNumber(exitFee).shiftedBy(-this.data.currency.decimals);
   }
-  async close() {
-    return await this._sendTx(this.dat.methods.close(), {
-      gas: gasRequirements.DecentralizedAutonomousTrust.close,
-    });
+  async close(options) {
+    return await this._sendTx(
+      this.dat.methods.close(),
+      Object.assign(
+        {
+          gas: gasRequirements.DecentralizedAutonomousTrust.close,
+        },
+        options
+      )
+    );
   }
-  async burn(tokenAmount) {
+  async burn(tokenAmount, options) {
     const tokenValue = new BigNumber(tokenAmount)
       .shiftedBy(this.data.decimals)
       .dp(0);
-    return await this._sendTx(this.dat.methods.burn(tokenValue.toFixed()), {
-      gas: gasRequirements.DecentralizedAutonomousTrust.burn,
-    });
+    return await this._sendTx(
+      this.dat.methods.burn(tokenValue.toFixed()),
+      Object.assign(
+        {
+          gas: gasRequirements.DecentralizedAutonomousTrust.burn,
+        },
+        options
+      )
+    );
   }
   /**
    *
@@ -542,7 +572,10 @@ module.exports = class CorgContracts {
       );
     });
   }
-  async sendPermit({ holder, spender, nonce, expiry, allowed, signature }) {
+  async sendPermit(
+    { holder, spender, nonce, expiry, allowed, signature },
+    options
+  ) {
     return await this._sendTx(
       this.dat.methods.permit(
         holder,
@@ -554,9 +587,12 @@ module.exports = class CorgContracts {
         signature.r,
         signature.s
       ),
-      {
-        gas: gasRequirements.DecentralizedAutonomousTrust.permit,
-      }
+      Object.assign(
+        {
+          gas: gasRequirements.DecentralizedAutonomousTrust.permit,
+        },
+        options
+      )
     );
   }
 };
