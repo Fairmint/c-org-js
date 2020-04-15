@@ -91,6 +91,22 @@ contract("corgContract", (accounts) => {
       assert.equal(tx.gasPrice, gasPrice);
     });
 
+    it("Can specify a custom nonce", async () => {
+      let error;
+      try {
+        await corg.buy("1", 100, undefined, {
+          nonce: 42,
+        });
+      } catch (err) {
+        error = err;
+      }
+      assert(
+        error.message.includes(
+          "Returned error: the tx doesn't have the correct nonce. account has nonce of:"
+        )
+      );
+    });
+
     it("Has a mintPrice", async () => {
       assert(corg.data.mintPrice.gt(0));
     });
