@@ -17,17 +17,17 @@ module.exports = class CorgContracts {
   }
 
   async _sendTx(tx, options) {
+    const callOptions = Object.assign(
+      {
+        from: this.data.account.address,
+        gasPrice: this.web3.utils.toWei("1.1", "Gwei"),
+      },
+      options
+    );
+    if (!callOptions.gas) {
+      callOptions.gas = await tx.estimateGas(callOptions);
+    }
     return new Promise((resolve, reject) => {
-      const callOptions = Object.assign(
-        {
-          from: this.data.account.address,
-          gasPrice: this.web3.utils.toWei("1.1", "Gwei"),
-        },
-        options
-      );
-      if (!callOptions.gas) {
-        callOptions.gas = tx.estimateGas(callOptions);
-      }
       tx.send(callOptions)
         .on("transactionHash", (tx) => {
           resolve(tx);
