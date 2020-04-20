@@ -210,6 +210,8 @@ module.exports = class CorgContracts {
     // at first it's always == mintPrice
     this.data.lastTokenPrice = this.data.mintPrice;
 
+    this.data.marketCap = this.data.totalSupply.times(this.data.mintPrice);
+
     // redeemPrice
     // (total_supply+burnt_supply)*sell_slope + (sell_slope*burnt_supply^2)/(2*total_supply).
     // with sell_slope=((2*buyback_reserve)/((total_supply+burnt_supply)^2)))
