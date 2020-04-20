@@ -115,6 +115,14 @@ contract("corgContract", (accounts) => {
       assert(corg.data.lastTokenPrice.gt(0));
     });
 
+    it("Has a marketCap", async () => {
+      assert(corg.data.marketCap.gt(0));
+      assert.equal(
+        corg.data.marketCap.toFixed(),
+        corg.data.totalSupply.times(corg.data.mintPrice).toFixed()
+      );
+    });
+
     it("Has a redeemPrice", async () => {
       assert(corg.data.redeemPrice.gt(0));
     });
