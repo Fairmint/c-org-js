@@ -126,6 +126,7 @@ module.exports = class CorgContracts {
       proxyAdmin,
       whitelistProxyAddress: this.whitelist._address,
       whitelistProxyImplementation,
+      whitelistProxyAdmin,
     };
 
     this.data.buySlope = new BigNumber(buySlopeNum)
