@@ -95,6 +95,7 @@ module.exports = class CorgContracts {
       proxyImplementation,
       proxyAdmin,
       whitelistProxyImplementation,
+      whitelistProxyAdmin,
     ] = await Promise.all([
       this.dat.methods.decimals().call(),
       this.currency ? this.currency.methods.decimals().call() : 18,
@@ -108,6 +109,7 @@ module.exports = class CorgContracts {
       datProxy.implementation(),
       datProxy.admin(),
       whitelistProxy.implementation(),
+      whitelistProxy.admin(),
     ]);
 
     this.data = {
