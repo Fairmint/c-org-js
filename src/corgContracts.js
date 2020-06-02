@@ -332,7 +332,7 @@ module.exports = class CorgContracts {
 
   async approve(options) {
     return await this._sendTx(
-      this.currency.methods.approve(this.dat._address, -1),
+      this.currency.methods.approve(this.dat._address, constants.MAX_UINT),
       options
     );
   }
