@@ -334,6 +334,22 @@ module.exports = class CorgContracts {
     this.data.account = account;
   }
 
+  /**
+   * Returns the currency (or ETH) balance for a given address.
+   * This call requires `init`.
+   */
+  async getCurrencyBalanceOf(accountAddress) {
+    let balance;
+    if (this.currency) {
+      balance = await this.currency.methods.balanceOf(accountAddress).call();
+      balance = new BigNumber(balance).shiftedBy(-this.data.currency.decimals);
+    } else {
+      balance = await this.web3.eth.getBalance(accountAddress);
+      balance = new BigNumber(balance).shiftedBy(-18);
+    }
+    return balance;
+  }
+
   async approve(options) {
     return await this._sendTx(
       this.currency.methods.approve(this.dat._address, constants.MAX_UINT),
