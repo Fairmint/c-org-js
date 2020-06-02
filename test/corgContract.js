@@ -1,4 +1,5 @@
 const Web3 = require("web3");
+const BigNumber = require("bignumber.js");
 const { tokens } = require("hardlydifficult-ethereum-contracts");
 const { Corg, CorgContracts, constants } = require("..");
 
@@ -6,11 +7,11 @@ contract("corgContract", (accounts) => {
   const beneficiary = accounts[0];
   const control = accounts[1];
   const feeCollector = accounts[2];
-  let corg;
+  let corg, usdc;
 
   beforeEach(async () => {
     // Deploy a USDC contract for testing
-    const usdc = await tokens.usdc.deploy(
+    usdc = await tokens.usdc.deploy(
       web3,
       accounts[accounts.length - 1],
       accounts[0]
@@ -70,6 +71,16 @@ contract("corgContract", (accounts) => {
   it("has unknown jurisdictionId by default", async () => {
     await corg.refreshAccountInfo(accounts[3]);
     assert.equal(corg.data.account.whitelist.jurisdictionId, 0);
+  });
+
+  it("can read balance of", async () => {
+    const account = accounts[3];
+    let expected = await usdc.balanceOf(account);
+    expected = new BigNumber(expected).shiftedBy(
+      -1 * parseInt(await usdc.decimals())
+    );
+    const actual = await corg.getCurrencyBalanceOf(account);
+    assert.equal(actual.toString(), expected.toString());
   });
 
   describe("once approved", () => {
