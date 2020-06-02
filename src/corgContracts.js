@@ -215,27 +215,31 @@ module.exports = class CorgContracts {
 
     this.data.marketCap = this.data.totalSupply.times(this.data.mintPrice);
 
-    // redeemPrice
-    // (total_supply+burnt_supply)*sell_slope + (sell_slope*burnt_supply^2)/(2*total_supply).
-    // with sell_slope=((2*buyback_reserve)/((total_supply+burnt_supply)^2)))
-    // (b^2 r)/(t (b + t)^2) + (2 r)/(b + t)
-    if (this.data.totalSupply.plus(this.data.burnedSupply).eq(0)) {
-      this.data.redeemPrice = new BigNumber(0);
+    if (this.data.state === "INIT") {
+      this.data.redeemPrice = this.data.mintPrice;
     } else {
-      this.data.redeemPrice = this.data.burnedSupply
-        .pow(2)
-        .times(this.data.buybackReserve)
-        .div(
-          this.data.burnedSupply
-            .plus(this.data.totalSupply)
-            .pow(2)
-            .times(this.data.totalSupply)
-        )
-        .plus(
-          this.data.buybackReserve
-            .times(2)
-            .div(this.data.burnedSupply.plus(this.data.totalSupply))
-        );
+      // redeemPrice
+      // (total_supply+burnt_supply)*sell_slope + (sell_slope*burnt_supply^2)/(2*total_supply).
+      // with sell_slope=((2*buyback_reserve)/((total_supply+burnt_supply)^2)))
+      // (b^2 r)/(t (b + t)^2) + (2 r)/(b + t)
+      if (this.data.totalSupply.plus(this.data.burnedSupply).eq(0)) {
+        this.data.redeemPrice = new BigNumber(0);
+      } else {
+        this.data.redeemPrice = this.data.burnedSupply
+          .pow(2)
+          .times(this.data.buybackReserve)
+          .div(
+            this.data.burnedSupply
+              .plus(this.data.totalSupply)
+              .pow(2)
+              .times(this.data.totalSupply)
+          )
+          .plus(
+            this.data.buybackReserve
+              .times(2)
+              .div(this.data.burnedSupply.plus(this.data.totalSupply))
+          );
+      }
     }
 
     /**
