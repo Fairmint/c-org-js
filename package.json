@@ -13,7 +13,7 @@
   "dependencies": {
     "@fairmint/c-org-abi": "2.2.0",
     "bignumber.js": "9.0.0",
-    "hardlydifficult-ethereum-contracts": "0.11.1",
+    "hardlydifficult-eth": "1.0.0",
     "web3": "1.2.8"
   },
   "devDependencies": {

@@ -1,5 +1,5 @@
 const Web3 = require("web3");
-const { tokens } = require("hardlydifficult-ethereum-contracts");
+const { tokens } = require("hardlydifficult-eth");
 const { CorgContracts } = require("../index");
 const { Corg } = require("..");
 

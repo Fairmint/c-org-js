@@ -1,6 +1,6 @@
 const Web3 = require("web3");
 const BigNumber = require("bignumber.js");
-const { protocols, tokens } = require("hardlydifficult-ethereum-contracts");
+const { protocols, tokens } = require("hardlydifficult-eth");
 
 module.exports = class Uniswap {
   async init(web3Provider) {

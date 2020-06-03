@@ -1,6 +1,6 @@
 const cOrgAbi = require("@fairmint/c-org-abi/abi.json");
 const cOrgBytecode = require("@fairmint/c-org-abi/bytecode.json");
-const { helpers } = require("hardlydifficult-ethereum-contracts");
+const { helpers } = require("hardlydifficult-eth");
 const Web3 = require("web3");
 const BigNumber = require("bignumber.js");
 
