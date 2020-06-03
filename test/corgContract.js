@@ -83,6 +83,59 @@ contract("corgContract", (accounts) => {
     assert.equal(actual.toString(), expected.toString());
   });
 
+  describe("whitelist", () => {
+    it("has an owner", async () => {
+      const expected = await corg.whitelist.methods.owner().call();
+      assert.equal(corg.data.whitelist.owner, expected);
+    });
+
+    it("has a default startDate", async () => {
+      assert.equal(corg.data.whitelist.startDate.toString(), "0");
+    });
+
+    it("has a default lockupGranularity", async () => {
+      assert.equal(corg.data.whitelist.lockupGranularity.toString(), "0");
+    });
+
+    describe("update whitelist", () => {
+      const newStartDate = 42;
+      const newLockupGranularity = 99;
+
+      beforeEach(async () => {
+        await corg.configWhitelist(newStartDate, newLockupGranularity, {
+          from: corg.data.whitelist.owner,
+        });
+        await corg.refreshOrgInfo();
+      });
+
+      it("has new startDate", async () => {
+        assert.equal(corg.data.whitelist.startDate.toString(), newStartDate);
+      });
+
+      it("has new lockupGranularity", async () => {
+        assert.equal(
+          corg.data.whitelist.lockupGranularity.toString(),
+          newLockupGranularity
+        );
+      });
+    });
+
+    describe("change owner", () => {
+      const newOwner = accounts[9];
+
+      beforeEach(async () => {
+        await corg.transferWhitelistOwnership(newOwner, {
+          from: corg.data.whitelist.owner,
+        });
+        await corg.refreshOrgInfo();
+      });
+
+      it("has the new owner", async () => {
+        assert.equal(corg.data.whitelist.owner, newOwner);
+      });
+    });
+  });
+
   describe("once approved", () => {
     beforeEach(async () => {
       await corg.refreshAccountInfo(control); // switch to default operator account
