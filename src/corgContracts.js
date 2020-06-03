@@ -17,7 +17,7 @@ module.exports = class CorgContracts {
   async _sendTx(tx, options) {
     const callOptions = Object.assign(
       {
-        from: this.data.account.address,
+        from: options.from ? "" : this.data.account.address,
         gasPrice: this.web3.utils.toWei("1.1", "Gwei"),
       },
       options
@@ -157,6 +157,9 @@ module.exports = class CorgContracts {
       minInvestment,
       openUntilAtLeast,
       stateId,
+      whitelistOwner,
+      whitelistLockupGranularity,
+      whitelistStartDate,
     ] = await Promise.all([
       this.dat.methods.totalSupply().call(),
       this.dat.methods.burnedSupply().call(),
@@ -170,6 +173,9 @@ module.exports = class CorgContracts {
       this.dat.methods.minInvestment().call(),
       this.dat.methods.openUntilAtLeast().call(),
       this.dat.methods.state().call(),
+      this.whitelist.methods.owner().call(),
+      this.whitelist.methods.lockupGranularity().call(),
+      this.whitelist.methods.startDate().call(),
     ]);
 
     this.data.revenueCommitment = new BigNumber(revenueCommitment).div(
@@ -268,6 +274,13 @@ module.exports = class CorgContracts {
       // This value should not be displayed unless in the RUN state
       this.data.marketSentiment = null;
     }
+
+    // Whitelist data
+    this.data.whitelist = {
+      owner: whitelistOwner,
+      lockupGranularity: whitelistLockupGranularity,
+      startDate: whitelistStartDate,
+    };
   }
 
   /**
@@ -574,6 +587,18 @@ module.exports = class CorgContracts {
         signature.r,
         signature.s
       ),
+      options
+    );
+  }
+  async configWhitelist(startDate, lockupGranularity, options) {
+    return await this._sendTx(
+      this.whitelist.methods.configWhitelist(startDate, lockupGranularity),
+      options
+    );
+  }
+  async transferWhitelistOwnership(newOwner, options) {
+    return await this._sendTx(
+      this.whitelist.methods.transferOwnership(newOwner),
       options
     );
   }
