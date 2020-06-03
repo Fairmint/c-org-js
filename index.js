@@ -5,4 +5,5 @@ module.exports = {
   CorgContracts: require("./src/corgContracts"),
   GasRequirements: require("./src/gasRequirements"),
   Uniswap: require("./src/uniswap.js"),
+  utils: require("./src/utils.js"),
 };
