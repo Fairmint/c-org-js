@@ -8,12 +8,10 @@ module.exports = class CorgContracts {
   /**
    * @param {object} web3 Expecting a web3 object or provider.
    * @param {string} address The DAT contract address.
-   * @param {object} metadata An object with any additional info such as networkName.
    */
-  constructor(web3, address, metadata) {
+  constructor(web3, address) {
     this.web3 = new Web3(web3);
     this.dat = new this.web3.eth.Contract(abi.dat, address);
-    this.metadata = metadata;
   }
 
   async _sendTx(tx, options) {
