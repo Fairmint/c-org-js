@@ -14,7 +14,6 @@
     "@fairmint/c-org-abi": "2.2.0",
     "@openzeppelin/upgrades": "2.8.0",
     "bignumber.js": "9.0.0",
-    "core-js": "3.6.5",
     "hardlydifficult-ethereum-contracts": "0.11.1",
     "web3": "1.2.8"
   },
