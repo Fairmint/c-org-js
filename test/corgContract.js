@@ -1,6 +1,6 @@
 const Web3 = require("web3");
 const BigNumber = require("bignumber.js");
-const { tokens } = require("hardlydifficult-ethereum-contracts");
+const { tokens } = require("hardlydifficult-eth");
 const { Corg, CorgContracts, constants } = require("..");
 
 contract("corgContract", (accounts) => {
