@@ -17,7 +17,7 @@ module.exports = class CorgContracts {
   async _sendTx(tx, options) {
     const callOptions = Object.assign(
       {
-        from: options.from ? "" : this.data.account.address,
+        from: options && options.from ? "" : this.data.account.address,
         gasPrice: this.web3.utils.toWei("1.1", "Gwei"),
       },
       options
