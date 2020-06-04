@@ -84,6 +84,8 @@ contract("corgContract", (accounts) => {
   });
 
   describe("whitelist", () => {
+    const operatorAccount = accounts[3];
+
     it("has an owner", async () => {
       const expected = await corg.whitelist.methods.owner().call();
       assert.equal(corg.data.whitelist.owner, expected);
@@ -95,6 +97,11 @@ contract("corgContract", (accounts) => {
 
     it("has a default lockupGranularity", async () => {
       assert.equal(corg.data.whitelist.lockupGranularity.toString(), "0");
+    });
+
+    it("is not an operator by default", async () => {
+      const actual = await corg.isWhitelistOperator(operatorAccount);
+      assert.equal(actual, false);
     });
 
     describe("update whitelist", () => {
@@ -132,6 +139,19 @@ contract("corgContract", (accounts) => {
 
       it("has the new owner", async () => {
         assert.equal(corg.data.whitelist.owner, newOwner);
+      });
+    });
+
+    describe("add operator", () => {
+      beforeEach(async () => {
+        await corg.addWhitelistOperator(operatorAccount, {
+          from: corg.data.whitelist.owner,
+        });
+      });
+
+      it("is now an operator", async () => {
+        const actual = await corg.isWhitelistOperator(operatorAccount);
+        assert.equal(actual, true);
       });
     });
   });
