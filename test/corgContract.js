@@ -9,6 +9,29 @@ contract("corgContract", (accounts) => {
   const feeCollector = accounts[2];
   let corg, usdc;
 
+  async function sendTx(tx, options) {
+    const callOptions = Object.assign(
+      {
+        from: options && options.from ? "" : corg.data.account.address,
+        gasPrice: corg.web3.utils.toWei("1.1", "Gwei"),
+      },
+      options
+    );
+    if (!callOptions.gas) {
+      callOptions.gas = await tx.estimateGas(callOptions);
+    }
+    return new Promise((resolve, reject) => {
+      tx.send(callOptions)
+        .on("transactionHash", (tx) => {
+          resolve(tx);
+        })
+        .on("error", (error) => {
+          console.log(error);
+          reject(error);
+        });
+    });
+  }
+
   beforeEach(async () => {
     // Deploy a USDC contract for testing
     usdc = await tokens.usdc.deploy(
@@ -109,7 +132,7 @@ contract("corgContract", (accounts) => {
       const newLockupGranularity = 99;
 
       beforeEach(async () => {
-        await corg.configWhitelist(newStartDate, newLockupGranularity, {
+        await sendTx(corg.configWhitelist(newStartDate, newLockupGranularity), {
           from: corg.data.whitelist.owner,
         });
         await corg.refreshOrgInfo();
@@ -131,7 +154,7 @@ contract("corgContract", (accounts) => {
       const newOwner = accounts[9];
 
       beforeEach(async () => {
-        await corg.transferWhitelistOwnership(newOwner, {
+        await sendTx(corg.transferWhitelistOwnership(newOwner), {
           from: corg.data.whitelist.owner,
         });
         await corg.refreshOrgInfo();
@@ -144,7 +167,7 @@ contract("corgContract", (accounts) => {
 
     describe("add operator", () => {
       beforeEach(async () => {
-        await corg.addWhitelistOperator(operatorAccount, {
+        await sendTx(corg.addWhitelistOperator(operatorAccount), {
           from: corg.data.whitelist.owner,
         });
       });
@@ -159,16 +182,16 @@ contract("corgContract", (accounts) => {
   describe("once approved", () => {
     beforeEach(async () => {
       await corg.refreshAccountInfo(control); // switch to default operator account
-      await corg.approveNewUsers([accounts[3]], [4]);
+      await sendTx(corg.approveNewUsers([accounts[3]], [4]));
       await corg.refreshAccountInfo(accounts[3]); // switch to test account
-      await corg.approve();
-      await corg.buy("1", 100);
+      await sendTx(corg.approve());
+      await sendTx(await corg.buy("1", 100));
       await corg.refreshOrgInfo();
     });
 
     it("Can specify custom call options", async () => {
       const gasPrice = web3.utils.toWei("4", "gwei");
-      const txHash = await corg.buy("1", 100, undefined, {
+      const txHash = await sendTx(await corg.buy("1", 100, undefined), {
         gasPrice,
       });
       const tx = await web3.eth.getTransaction(txHash);
@@ -178,7 +201,7 @@ contract("corgContract", (accounts) => {
     it("Can specify a custom nonce", async () => {
       let error;
       try {
-        await corg.buy("1", 100, undefined, {
+        await sendTx(await corg.buy("1", 100, undefined), {
           nonce: 42,
         });
       } catch (err) {
@@ -235,7 +258,7 @@ contract("corgContract", (accounts) => {
 
     describe("pay", () => {
       beforeEach(async () => {
-        await corg.pay("1");
+        await sendTx(corg.pay("1"));
       });
 
       it("Can pay the contract", async () => {
@@ -249,7 +272,7 @@ contract("corgContract", (accounts) => {
 
     describe("burn after purchase", () => {
       beforeEach(async () => {
-        await corg.burn("0.1");
+        await sendTx(corg.burn("0.1"));
       });
 
       it("Can burn fair", async () => {
@@ -263,7 +286,7 @@ contract("corgContract", (accounts) => {
 
     describe("sell after purchase", () => {
       beforeEach(async () => {
-        await corg.sell("1", 100);
+        await sendTx(await corg.sell("1", 100));
       });
 
       it("Can sell fair", async () => {

@@ -14,29 +14,6 @@ module.exports = class CorgContracts {
     this.dat = new this.web3.eth.Contract(abi.dat, address);
   }
 
-  async _sendTx(tx, options) {
-    const callOptions = Object.assign(
-      {
-        from: options && options.from ? "" : this.data.account.address,
-        gasPrice: this.web3.utils.toWei("1.1", "Gwei"),
-      },
-      options
-    );
-    if (!callOptions.gas) {
-      callOptions.gas = await tx.estimateGas(callOptions);
-    }
-    return new Promise((resolve, reject) => {
-      tx.send(callOptions)
-        .on("transactionHash", (tx) => {
-          resolve(tx);
-        })
-        .on("error", (error) => {
-          console.log(error);
-          reject(error);
-        });
-    });
-  }
-
   /**
    * @notice Call once after construction to pull data from the contract which can never change.
    */
@@ -365,31 +342,28 @@ module.exports = class CorgContracts {
    * Checks if the given address is approved as a whitelist operator.
    */
   async isWhitelistOperator(accountAddress) {
-    return await this.whitelist.methods.isOperator(accountAddress).call();
+    return this.whitelist.methods.isOperator(accountAddress).call();
   }
 
   /**
    * Approves an account as a whitelist operator.
    * Must be called by the whitelist owner account.
    */
-  async addWhitelistOperator(accountAddress, options) {
-    return await this._sendTx(
-      this.whitelist.methods.addOperator(accountAddress),
-      options
-    );
+  addWhitelistOperator(accountAddress) {
+    return this.whitelist.methods.addOperator(accountAddress);
   }
 
-  async approve(options) {
-    return await this._sendTx(
-      this.currency.methods.approve(this.dat._address, constants.MAX_UINT),
-      options
+  /**
+   * Calls `approve` on the currency for the specified value || unlimited if not specified.
+   */
+  approve(value) {
+    return this.currency.methods.approve(
+      this.dat._address,
+      value ? value : constants.MAX_UINT
     );
   }
-  async approveNewUsers(accounts, jurisdictionIds, options) {
-    return await this._sendTx(
-      this.whitelist.methods.approveNewUsers(accounts, jurisdictionIds),
-      options
-    );
+  approveNewUsers(accounts, jurisdictionIds) {
+    return this.whitelist.methods.approveNewUsers(accounts, jurisdictionIds);
   }
   async estimateBuyValue(currencyAmount) {
     if (!currencyAmount) return 0;
@@ -401,7 +375,7 @@ module.exports = class CorgContracts {
       .call();
     return new BigNumber(buyValue).shiftedBy(-this.data.decimals);
   }
-  async buy(currencyAmount, maxSlipPercent, sendToAddress, options) {
+  async buy(currencyAmount, maxSlipPercent, sendToAddress) {
     let sendTo;
     if (sendToAddress && sendToAddress !== this.web3.utils.padLeft(0, 40)) {
       sendTo = sendToAddress;
@@ -422,13 +396,10 @@ module.exports = class CorgContracts {
       minBuyValue = new BigNumber(1);
     }
 
-    return await this._sendTx(
-      this.dat.methods.buy(
-        sendTo,
-        currencyValue.toFixed(),
-        minBuyValue.toFixed()
-      ),
-      options
+    return this.dat.methods.buy(
+      sendTo,
+      currencyValue.toFixed(),
+      minBuyValue.toFixed()
     );
   }
   async estimateSellValue(tokenAmount) {
@@ -444,7 +415,7 @@ module.exports = class CorgContracts {
       return new BigNumber(0);
     }
   }
-  async sell(tokenAmount, maxSlipPercent, sendToAddress, options) {
+  async sell(tokenAmount, maxSlipPercent, sendToAddress) {
     tokenAmount = new BigNumber(tokenAmount);
     const estimateSellValue = await this.estimateSellValue(
       tokenAmount.toFixed()
@@ -468,13 +439,10 @@ module.exports = class CorgContracts {
     if (minSellValue.lt(1)) {
       minSellValue = new BigNumber(1);
     }
-    return await this._sendTx(
-      this.dat.methods.sell(
-        sendTo,
-        tokenValue.toFixed(),
-        minSellValue.toFixed()
-      ),
-      options
+    return this.dat.methods.sell(
+      sendTo,
+      tokenValue.toFixed(),
+      minSellValue.toFixed()
     );
   }
   async estimatePayValue(currencyAmount) {
@@ -486,7 +454,7 @@ module.exports = class CorgContracts {
       .call();
     return new BigNumber(payValue).shiftedBy(-this.data.decimals);
   }
-  async pay(currencyAmount, sendToAddress, options) {
+  pay(currencyAmount, sendToAddress) {
     currencyAmount = new BigNumber(currencyAmount);
     let sendTo;
     if (sendToAddress && sendToAddress !== this.web3.utils.padLeft(0, 40)) {
@@ -497,26 +465,20 @@ module.exports = class CorgContracts {
     const currencyValue = currencyAmount
       .shiftedBy(this.data.currency.decimals)
       .dp(0);
-    return await this._sendTx(
-      this.dat.methods.pay(sendTo, currencyValue.toFixed()),
-      options
-    );
+    return this.dat.methods.pay(sendTo, currencyValue.toFixed());
   }
   async estimateExitFee() {
     const exitFee = await this.dat.methods.estimateExitFee("0").call();
     return new BigNumber(exitFee).shiftedBy(-this.data.currency.decimals);
   }
-  async close(options) {
-    return await this._sendTx(this.dat.methods.close(), options);
+  close() {
+    return this.dat.methods.close();
   }
-  async burn(tokenAmount, options) {
+  burn(tokenAmount) {
     const tokenValue = new BigNumber(tokenAmount)
       .shiftedBy(this.data.decimals)
       .dp(0);
-    return await this._sendTx(
-      this.dat.methods.burn(tokenValue.toFixed()),
-      options
-    );
+    return this.dat.methods.burn(tokenValue.toFixed());
   }
   /**
    *
@@ -561,7 +523,7 @@ module.exports = class CorgContracts {
       primaryType: "Permit",
       message,
     });
-    return await new Promise((reject, resolve) => {
+    return new Promise((reject, resolve) => {
       web3.currentProvider.sendAsync(
         {
           method: "eth_signTypedData_v4",
@@ -590,34 +552,22 @@ module.exports = class CorgContracts {
       );
     });
   }
-  async sendPermit(
-    { holder, spender, nonce, expiry, allowed, signature },
-    options
-  ) {
-    return await this._sendTx(
-      this.dat.methods.permit(
-        holder,
-        spender,
-        nonce,
-        expiry,
-        allowed,
-        signature.v,
-        signature.r,
-        signature.s
-      ),
-      options
+  sendPermit({ holder, spender, nonce, expiry, allowed, signature }) {
+    return this.dat.methods.permit(
+      holder,
+      spender,
+      nonce,
+      expiry,
+      allowed,
+      signature.v,
+      signature.r,
+      signature.s
     );
   }
-  async configWhitelist(startDate, lockupGranularity, options) {
-    return await this._sendTx(
-      this.whitelist.methods.configWhitelist(startDate, lockupGranularity),
-      options
-    );
+  configWhitelist(startDate, lockupGranularity) {
+    return this.whitelist.methods.configWhitelist(startDate, lockupGranularity);
   }
-  async transferWhitelistOwnership(newOwner, options) {
-    return await this._sendTx(
-      this.whitelist.methods.transferOwnership(newOwner),
-      options
-    );
+  transferWhitelistOwnership(newOwner) {
+    return this.whitelist.methods.transferOwnership(newOwner);
   }
 };
