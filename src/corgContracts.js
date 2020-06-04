@@ -361,6 +361,24 @@ module.exports = class CorgContracts {
     return balance;
   }
 
+  /**
+   * Checks if the given address is approved as a whitelist operator.
+   */
+  async isWhitelistOperator(accountAddress) {
+    return await this.whitelist.methods.isOperator(accountAddress).call();
+  }
+
+  /**
+   * Approves an account as a whitelist operator.
+   * Must be called by the whitelist owner account.
+   */
+  async addWhitelistOperator(accountAddress, options) {
+    return await this._sendTx(
+      this.whitelist.methods.addOperator(accountAddress),
+      options
+    );
+  }
+
   async approve(options) {
     return await this._sendTx(
       this.currency.methods.approve(this.dat._address, constants.MAX_UINT),
