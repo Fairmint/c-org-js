@@ -185,13 +185,13 @@ contract("corgContract", (accounts) => {
       await sendTx(corg.approveNewUsers([accounts[3]], [4]));
       await corg.refreshAccountInfo(accounts[3]); // switch to test account
       await sendTx(corg.approve());
-      await sendTx(corg.buy("1", 100));
+      await sendTx(await corg.buy("1", 100));
       await corg.refreshOrgInfo();
     });
 
     it("Can specify custom call options", async () => {
       const gasPrice = web3.utils.toWei("4", "gwei");
-      const txHash = await sendTx(corg.buy("1", 100, undefined), {
+      const txHash = await sendTx(await corg.buy("1", 100, undefined), {
         gasPrice,
       });
       const tx = await web3.eth.getTransaction(txHash);
@@ -201,7 +201,7 @@ contract("corgContract", (accounts) => {
     it("Can specify a custom nonce", async () => {
       let error;
       try {
-        await sendTx(corg.buy("1", 100, undefined), {
+        await sendTx(await corg.buy("1", 100, undefined), {
           nonce: 42,
         });
       } catch (err) {
@@ -286,7 +286,7 @@ contract("corgContract", (accounts) => {
 
     describe("sell after purchase", () => {
       beforeEach(async () => {
-        await sendTx(corg.sell("1", 100));
+        await sendTx(await corg.sell("1", 100));
       });
 
       it("Can sell fair", async () => {
