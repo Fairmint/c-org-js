@@ -16,7 +16,7 @@
     "bignumber.js": "9.0.0",
     "core-js": "3.6.5",
     "hardlydifficult-eth": "1.0.0",
-    "web3": "1.2.8"
+    "web3": "1.2.6"
   },
   "devDependencies": {
     "eslint": "7.1.0",
