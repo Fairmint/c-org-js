@@ -504,7 +504,7 @@ module.exports = class CorgContracts {
     const domainData = {
       name: this.data.name,
       version: this.data.version,
-      chainId: parseInt(web3.version.network, 10),
+      chainId: await this.web3.eth.net.getId(),
       verifyingContract: this.dat._address,
     };
     const message = {
@@ -523,7 +523,7 @@ module.exports = class CorgContracts {
       primaryType: "Permit",
       message,
     });
-    return new Promise((reject, resolve) => {
+    return new Promise((resolve, reject) => {
       web3.currentProvider.sendAsync(
         {
           method: "eth_signTypedData_v4",
@@ -534,34 +534,25 @@ module.exports = class CorgContracts {
           if (err) {
             return reject(err);
           }
-          const signature = result.result.substring(2);
-          const r = "0x" + signature.substring(0, 64);
-          const s = "0x" + signature.substring(64, 128);
-          const v = parseInt(signature.substring(128, 130), 16);
-          // The signature is now comprised of r, s, and v.
-          return resolve(
-            Object.assign(message, {
-              signature: {
-                v,
-                r,
-                s,
-              },
-            })
-          );
+          return resolve(result.result);
         }
       );
     });
   }
   sendPermit({ holder, spender, nonce, expiry, allowed, signature }) {
+    const signatureHash = signature.substring(2);
+    const r = "0x" + signatureHash.substring(0, 64);
+    const s = "0x" + signatureHash.substring(64, 128);
+    const v = parseInt(signatureHash.substring(128, 130), 16);
     return this.dat.methods.permit(
       holder,
       spender,
       nonce,
       expiry,
       allowed,
-      signature.v,
-      signature.r,
-      signature.s
+      v,
+      r,
+      s
     );
   }
   configWhitelist(startDate, lockupGranularity) {
