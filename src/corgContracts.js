@@ -127,12 +127,11 @@ module.exports = class CorgContracts {
       beneficiary,
       control,
       feeCollector,
-      autoBurn,
       buybackReserve,
       fee,
       revenueCommitment,
       minInvestment,
-      openUntilAtLeast,
+      minDuration,
       stateId,
       whitelistOwner,
       whitelistLockupGranularity,
@@ -143,12 +142,11 @@ module.exports = class CorgContracts {
       this.dat.methods.beneficiary().call(),
       this.dat.methods.control().call(),
       this.dat.methods.feeCollector().call(),
-      this.dat.methods.autoBurn().call(),
       this.dat.methods.buybackReserve().call(),
       this.dat.methods.feeBasisPoints().call(),
       this.dat.methods.revenueCommitmentBasisPoints().call(),
       this.dat.methods.minInvestment().call(),
-      this.dat.methods.openUntilAtLeast().call(),
+      this.dat.methods.minDuration().call(),
       this.dat.methods.state().call(),
       this.whitelist.methods.owner().call(),
       this.whitelist.methods.lockupGranularity().call(),
@@ -167,7 +165,6 @@ module.exports = class CorgContracts {
     this.data.beneficiary = beneficiary;
     this.data.control = control;
     this.data.feeCollector = feeCollector;
-    this.data.autoBurn = autoBurn;
     this.data.buybackReserve = new BigNumber(buybackReserve).shiftedBy(
       -this.data.currency.decimals
     );
@@ -175,7 +172,7 @@ module.exports = class CorgContracts {
     this.data.minInvestment = new BigNumber(minInvestment).shiftedBy(
       -this.data.currency.decimals
     );
-    this.data.openUntilAtLeast = openUntilAtLeast;
+    this.data.minDuration = minDuration;
     this.data.state = constants.STATES[stateId];
 
     // mintPrice. The price of the last transaction. For the preview, we can
