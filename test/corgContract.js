@@ -233,8 +233,9 @@ contract("corgContract", (accounts) => {
       assert(corg.data.redeemPrice.gt(0));
     });
 
-    it("Is version 2", async () => {
-      assert.equal(corg.data.version, "2");
+    it("Is correct version", async () => {
+      const expected = await corg.dat.methods.version().call();
+      assert.equal(corg.data.version, expected);
     });
 
     it("Can buy fair", async () => {
