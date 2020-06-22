@@ -55,9 +55,8 @@ contract("corgContract", (accounts) => {
       investmentReserveBasisPoints: "1000",
       revenueCommitmentBasisPoints: "1000",
       feeBasisPoints: "0",
-      autoBurn: false,
       minInvestment: "1",
-      openUntilAtLeast: "0",
+      minDuration: "0",
       name: "FAIR token",
       symbol: "FAIR",
       control,
@@ -265,7 +264,7 @@ contract("corgContract", (accounts) => {
         await corg.refreshAccountInfo(accounts[3]);
         assert.equal(
           corg.data.account.fairBalance.toFixed(),
-          "14.31997329894075723"
+          "14.142135623730950488"
         );
       });
     });

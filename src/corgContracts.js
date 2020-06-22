@@ -442,27 +442,12 @@ module.exports = class CorgContracts {
       minSellValue.toFixed()
     );
   }
-  async estimatePayValue(currencyAmount) {
-    if (!currencyAmount) return 0;
+  pay(currencyAmount) {
     currencyAmount = new BigNumber(currencyAmount);
-    const currencyValue = currencyAmount.shiftedBy(this.data.currency.decimals);
-    const payValue = await this.dat.methods
-      .estimatePayValue(currencyValue.toFixed())
-      .call();
-    return new BigNumber(payValue).shiftedBy(-this.data.decimals);
-  }
-  pay(currencyAmount, sendToAddress) {
-    currencyAmount = new BigNumber(currencyAmount);
-    let sendTo;
-    if (sendToAddress && sendToAddress !== this.web3.utils.padLeft(0, 40)) {
-      sendTo = sendToAddress;
-    } else {
-      sendTo = this.data.account.address;
-    }
     const currencyValue = currencyAmount
       .shiftedBy(this.data.currency.decimals)
       .dp(0);
-    return this.dat.methods.pay(sendTo, currencyValue.toFixed());
+    return this.dat.methods.pay(currencyValue.toFixed());
   }
   async estimateExitFee() {
     const exitFee = await this.dat.methods.estimateExitFee("0").call();

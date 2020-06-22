@@ -19,7 +19,7 @@ contract("c-org", (accounts) => {
       feeBasisPoints: "0",
       burnThresholdBasisPoints: false,
       minInvestment: "1",
-      openUntilAtLeast: "0",
+      minDuration: "0",
       name: "FAIR token",
       symbol: "FAIR",
       control,
