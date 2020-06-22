@@ -5,14 +5,17 @@ const { protocols, tokens } = require("hardlydifficult-eth");
 module.exports = class Uniswap {
   async init(web3Provider) {
     const web3 = new Web3(web3Provider);
-    const uniswap = await protocols.uniswap.getFactory(
+    const uniswap = await protocols.uniswapV1.getFactory(
       web3,
-      protocols.uniswap.mainnetFactoryAddress
+      protocols.uniswapV1.mainnetFactoryAddress
     );
     const exchangeAddress = await uniswap.getExchange(
       tokens.usdc.mainnetAddress
     );
-    this.exchange = await protocols.uniswap.getExchange(web3, exchangeAddress);
+    this.exchange = await protocols.uniswapV1.getExchange(
+      web3,
+      exchangeAddress
+    );
   }
 
   async getEthToUSDC() {
