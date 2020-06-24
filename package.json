@@ -11,7 +11,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@fairmint/c-org-abi": "2.4.0",
+    "@fairmint/c-org-abi": "2.4.1",
     "bignumber.js": "9.0.0",
     "hardlydifficult-eth": "1.1.1",
     "web3": "1.2.6"

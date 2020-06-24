@@ -2,6 +2,7 @@ const Web3 = require("web3");
 const BigNumber = require("bignumber.js");
 const { tokens } = require("hardlydifficult-eth");
 const { Corg, CorgContracts, constants } = require("..");
+const utils = require("hardlydifficult-eth/src/utils");
 
 contract("corgContract", (accounts) => {
   const beneficiary = accounts[0];
@@ -178,91 +179,70 @@ contract("corgContract", (accounts) => {
     });
   });
 
-  describe("once approved", () => {
+  describe("permit", () => {
+    const [owner, spender] = accounts;
+
     beforeEach(async () => {
-      await corg.refreshAccountInfo(control); // switch to default operator account
-      await sendTx(corg.approveNewUsers([accounts[3]], [4]));
-      await corg.refreshAccountInfo(accounts[3]); // switch to test account
-      await sendTx(corg.approve());
-      await sendTx(await corg.buy("1", 100));
-      await corg.refreshOrgInfo();
-    });
-
-    it("Can specify custom call options", async () => {
-      const gasPrice = web3.utils.toWei("4", "gwei");
-      const txHash = await sendTx(await corg.buy("1", 100, undefined), {
-        gasPrice,
-      });
-      const tx = await web3.eth.getTransaction(txHash);
-      assert.equal(tx.gasPrice, gasPrice);
-    });
-
-    it("Can specify a custom nonce", async () => {
-      let error;
-      try {
-        await sendTx(await corg.buy("1", 100, undefined), {
-          nonce: 42,
-        });
-      } catch (err) {
-        error = err;
-      }
-      assert(
-        error.message.includes(
-          "Returned error: the tx doesn't have the correct nonce. account has nonce of:"
+      await corg.refreshAccountInfo(owner);
+      const signature = await corg.signPermit(
+        spender,
+        constants.MAX_UINT,
+        constants.MAX_UINT
+      );
+      await sendTx(
+        await corg.sendPermit(
+          owner,
+          spender,
+          constants.MAX_UINT,
+          constants.MAX_UINT,
+          signature
         )
       );
     });
 
-    it("Has a mintPrice", async () => {
-      assert(corg.data.mintPrice.gt(0));
+    it("has allowance set", async () => {
+      const allowance = await corg.getFairAllowance(owner, spender);
+      assert.equal(allowance, constants.MAX_UINT);
+    });
+  });
+
+  describe("once approved", () => {
+    const from = accounts[3];
+    const to = from;
+
+    beforeEach(async () => {
+      await corg.refreshAccountInfo(control); // switch to default operator account
+      await sendTx(corg.approveNewUsers([from], [4]));
+      await corg.refreshAccountInfo(from); // switch to test account
+      await sendTx(corg.approve());
     });
 
-    it("Has a lastTokenPrice", async () => {
-      assert(corg.data.lastTokenPrice.gt(0));
-    });
+    describe("permitBuy", () => {
+      const currencyAmount = "1";
+      const minTokensBought = "1";
 
-    it("Has a marketCap", async () => {
-      assert(corg.data.marketCap.gt(0));
-      assert.equal(
-        corg.data.marketCap.toFixed(),
-        corg.data.totalSupply.times(corg.data.mintPrice).toFixed()
-      );
-    });
-
-    it("Has a redeemPrice", async () => {
-      assert(corg.data.redeemPrice.gt(0));
-    });
-
-    it("Is correct version", async () => {
-      const expected = await corg.dat.methods.version().call();
-      assert.equal(corg.data.version, expected);
-    });
-
-    it("Can buy fair", async () => {
-      await corg.refreshAccountInfo(accounts[3]);
-      assert.equal(
-        corg.data.account.fairBalance.toFixed(),
-        "14.142135623730950488"
-      );
-    });
-
-    it("Now has a valid market sentiment", async () => {
-      await corg.refreshOrgInfo();
-      assert.notEqual(corg.data.marketSentiment.toFixed(), "Infinity");
-    });
-
-    it("has a jurisdictionId after", async () => {
-      await corg.refreshAccountInfo(accounts[3]);
-      assert.equal(corg.data.account.whitelist.jurisdictionId, 4);
-    });
-
-    describe("pay", () => {
       beforeEach(async () => {
-        await sendTx(corg.pay("1"));
+        await corg.refreshAccountInfo(from);
+        const signature = await corg.signPermitBuy(
+          to,
+          currencyAmount,
+          minTokensBought,
+          constants.MAX_UINT
+        );
+        await sendTx(
+          await corg.sendPermitBuy(
+            from,
+            to,
+            currencyAmount,
+            minTokensBought,
+            constants.MAX_UINT,
+            signature
+          )
+        );
       });
 
-      it("Can pay the contract", async () => {
-        await corg.refreshAccountInfo(accounts[3]);
+      it("Can permitBuy fair", async () => {
+        await corg.refreshAccountInfo(to);
         assert.equal(
           corg.data.account.fairBalance.toFixed(),
           "14.142135623730950488"
@@ -270,31 +250,171 @@ contract("corgContract", (accounts) => {
       });
     });
 
-    describe("burn after purchase", () => {
+    describe("buy", () => {
       beforeEach(async () => {
-        await sendTx(corg.burn("0.1"));
+        await sendTx(await corg.buy("1", 100));
+        await corg.refreshOrgInfo();
       });
 
-      it("Can burn fair", async () => {
+      it("Can specify custom call options", async () => {
+        const gasPrice = web3.utils.toWei("4", "gwei");
+        const txHash = await sendTx(await corg.buy("1", 100, undefined), {
+          gasPrice,
+        });
+        const tx = await web3.eth.getTransaction(txHash);
+        assert.equal(tx.gasPrice, gasPrice);
+      });
+
+      it("Can specify a custom nonce", async () => {
+        let error;
+        try {
+          await sendTx(await corg.buy("1", 100, undefined), {
+            nonce: 42,
+          });
+        } catch (err) {
+          error = err;
+        }
+        assert(
+          error.message.includes(
+            "Returned error: the tx doesn't have the correct nonce. account has nonce of:"
+          )
+        );
+      });
+
+      it("Has a mintPrice", async () => {
+        assert(corg.data.mintPrice.gt(0));
+      });
+
+      it("Has a lastTokenPrice", async () => {
+        assert(corg.data.lastTokenPrice.gt(0));
+      });
+
+      it("Has a marketCap", async () => {
+        assert(corg.data.marketCap.gt(0));
+        assert.equal(
+          corg.data.marketCap.toFixed(),
+          corg.data.totalSupply.times(corg.data.mintPrice).toFixed()
+        );
+      });
+
+      it("Has a redeemPrice", async () => {
+        assert(corg.data.redeemPrice.gt(0));
+      });
+
+      it("Is correct version", async () => {
+        const expected = await corg.dat.methods.version().call();
+        assert.equal(corg.data.version, expected);
+      });
+
+      it("Can buy fair", async () => {
         await corg.refreshAccountInfo(accounts[3]);
         assert.equal(
           corg.data.account.fairBalance.toFixed(),
-          "14.042135623730950488"
+          "14.142135623730950488"
         );
       });
-    });
 
-    describe("sell after purchase", () => {
-      beforeEach(async () => {
-        await sendTx(await corg.sell("1", 100));
+      it("Now has a valid market sentiment", async () => {
+        await corg.refreshOrgInfo();
+        assert.notEqual(corg.data.marketSentiment.toFixed(), "Infinity");
       });
 
-      it("Can sell fair", async () => {
+      it("has a jurisdictionId after", async () => {
         await corg.refreshAccountInfo(accounts[3]);
-        assert.equal(
-          corg.data.account.fairBalance.toFixed(),
-          "13.142135623730950488"
-        );
+        assert.equal(corg.data.account.whitelist.jurisdictionId, 4);
+      });
+
+      describe("pay", () => {
+        beforeEach(async () => {
+          await sendTx(corg.pay("1"));
+        });
+
+        it("Can pay the contract", async () => {
+          await corg.refreshAccountInfo(accounts[3]);
+          assert.equal(
+            corg.data.account.fairBalance.toFixed(),
+            "14.142135623730950488"
+          );
+        });
+      });
+
+      describe("burn after purchase", () => {
+        beforeEach(async () => {
+          await sendTx(corg.burn("0.1"));
+        });
+
+        it("Can burn fair", async () => {
+          await corg.refreshAccountInfo(accounts[3]);
+          assert.equal(
+            corg.data.account.fairBalance.toFixed(),
+            "14.042135623730950488"
+          );
+        });
+      });
+
+      describe("burnFrom after purchase", () => {
+        beforeEach(async () => {
+          await sendTx(corg.approve(constants.MAX_UINT));
+          await sendTx(corg.burnFrom(accounts[3], "0.1"), {
+            from: accounts[2],
+          });
+        });
+
+        it("Can burn fair", async () => {
+          await corg.refreshAccountInfo(accounts[3]);
+          assert.equal(
+            corg.data.account.fairBalance.toFixed(),
+            "14.042135623730950488"
+          );
+        });
+      });
+
+      describe("sell after purchase", () => {
+        beforeEach(async () => {
+          await corg.refreshAccountInfo(accounts[3]);
+          await sendTx(await corg.sell("1", 100));
+        });
+
+        it("Can sell fair", async () => {
+          await corg.refreshAccountInfo(accounts[3]);
+          assert.equal(
+            corg.data.account.fairBalance.toFixed(),
+            "13.142135623730950488"
+          );
+        });
+      });
+
+      describe("can permitSell after purchase", () => {
+        const from = accounts[3];
+        const to = from;
+
+        beforeEach(async () => {
+          await corg.refreshAccountInfo(from);
+          const signature = await corg.signPermitSell(
+            to,
+            "1",
+            "0.000001",
+            constants.MAX_UINT
+          );
+          await sendTx(
+            await corg.sendPermitSell(
+              from,
+              to,
+              "1",
+              "0.000001",
+              constants.MAX_UINT,
+              signature
+            )
+          );
+        });
+
+        it("Can sell fair", async () => {
+          await corg.refreshAccountInfo(to);
+          assert.equal(
+            corg.data.account.fairBalance.toFixed(),
+            "13.142135623730950488"
+          );
+        });
       });
     });
   });
