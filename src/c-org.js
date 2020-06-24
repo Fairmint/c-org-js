@@ -1,6 +1,6 @@
 const cOrgAbi = require("@fairmint/c-org-abi/abi.json");
 const cOrgBytecode = require("@fairmint/c-org-abi/bytecode.json");
-const { helpers } = require("hardlydifficult-eth");
+const { constants, helpers } = require("hardlydifficult-eth");
 const Web3 = require("web3");
 const BigNumber = require("bignumber.js");
 
@@ -85,11 +85,13 @@ async function initializeDat(web3, from, datProxyAddress, options) {
   const callOptions = Object.assign(
     {
       initReserve: "42000000000000000000",
-      currency: "0x0000000000000000000000000000000000000000",
+      currency: constants.ZERO_ADDRESS,
       initGoal: "0",
       buySlopeNum: "1",
       buySlopeDen: "100000000000000000000",
       investmentReserveBasisPoints: "1000",
+      setupFee: "0",
+      setupFeeRecipient: constants.ZERO_ADDRESS,
       name: "FAIR token",
       symbol: "FAIR",
     },
@@ -103,6 +105,8 @@ async function initializeDat(web3, from, datProxyAddress, options) {
     callOptions.buySlopeNum,
     callOptions.buySlopeDen,
     callOptions.investmentReserveBasisPoints,
+    callOptions.setupFee,
+    callOptions.setupFeeRecipient,
     callOptions.name,
     callOptions.symbol,
     { from }
@@ -116,7 +120,7 @@ async function updateDat(web3, from, datProxyAddress, options) {
       feeBasisPoints: "0",
       burnThresholdBasisPoints: false,
       minInvestment: "1",
-      openUntilAtLeast: "0",
+      minDuration: "0",
       beneficiary: options.control,
       feeCollector: options.control,
     },
@@ -129,10 +133,9 @@ async function updateDat(web3, from, datProxyAddress, options) {
     callOptions.control,
     callOptions.feeCollector,
     callOptions.feeBasisPoints,
-    callOptions.autoBurn,
     callOptions.revenueCommitmentBasisPoints,
     callOptions.minInvestment,
-    callOptions.openUntilAtLeast,
+    callOptions.minDuration,
     {
       from,
     }

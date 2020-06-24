@@ -96,7 +96,7 @@ module.exports = class CorgContracts {
       },
       name,
       symbol,
-      version: "2", // reading version dynamically fails in the browser
+      version: "3", // reading version dynamically fails in the browser
       proxyImplementation,
       proxyAdmin,
       whitelistProxyAddress: this.whitelist._address,
@@ -127,12 +127,11 @@ module.exports = class CorgContracts {
       beneficiary,
       control,
       feeCollector,
-      autoBurn,
       buybackReserve,
       fee,
       revenueCommitment,
       minInvestment,
-      openUntilAtLeast,
+      minDuration,
       stateId,
       whitelistOwner,
       whitelistLockupGranularity,
@@ -143,12 +142,11 @@ module.exports = class CorgContracts {
       this.dat.methods.beneficiary().call(),
       this.dat.methods.control().call(),
       this.dat.methods.feeCollector().call(),
-      this.dat.methods.autoBurn().call(),
       this.dat.methods.buybackReserve().call(),
       this.dat.methods.feeBasisPoints().call(),
       this.dat.methods.revenueCommitmentBasisPoints().call(),
       this.dat.methods.minInvestment().call(),
-      this.dat.methods.openUntilAtLeast().call(),
+      this.dat.methods.minDuration().call(),
       this.dat.methods.state().call(),
       this.whitelist.methods.owner().call(),
       this.whitelist.methods.lockupGranularity().call(),
@@ -167,7 +165,6 @@ module.exports = class CorgContracts {
     this.data.beneficiary = beneficiary;
     this.data.control = control;
     this.data.feeCollector = feeCollector;
-    this.data.autoBurn = autoBurn;
     this.data.buybackReserve = new BigNumber(buybackReserve).shiftedBy(
       -this.data.currency.decimals
     );
@@ -175,7 +172,7 @@ module.exports = class CorgContracts {
     this.data.minInvestment = new BigNumber(minInvestment).shiftedBy(
       -this.data.currency.decimals
     );
-    this.data.openUntilAtLeast = openUntilAtLeast;
+    this.data.minDuration = minDuration;
     this.data.state = constants.STATES[stateId];
 
     // mintPrice. The price of the last transaction. For the preview, we can
@@ -339,6 +336,13 @@ module.exports = class CorgContracts {
   }
 
   /**
+   * Returns the number of FAIR the holder has approved to spender to transfer.
+   */
+  async getFairAllowance(owner, spender) {
+    return await this.dat.methods.allowance(owner, spender).call();
+  }
+
+  /**
    * Checks if the given address is approved as a whitelist operator.
    */
   async isWhitelistOperator(accountAddress) {
@@ -354,11 +358,20 @@ module.exports = class CorgContracts {
   }
 
   /**
-   * Calls `approve` on the currency for the specified value || unlimited if not specified.
+   * Calls `approve` on the currency for the dat to spend up to the specified value || unlimited if not specified.
    */
   approve(value) {
     return this.currency.methods.approve(
       this.dat._address,
+      value ? value : constants.MAX_UINT
+    );
+  }
+  /**
+   * Calls `approve` on FAIR for the spender to spend up to the specified value || unlimited if not specified.
+   */
+  approveFair(spender, value) {
+    return this.dat.methods.approve(
+      spender,
       value ? value : constants.MAX_UINT
     );
   }
@@ -445,27 +458,12 @@ module.exports = class CorgContracts {
       minSellValue.toFixed()
     );
   }
-  async estimatePayValue(currencyAmount) {
-    if (!currencyAmount) return 0;
+  pay(currencyAmount) {
     currencyAmount = new BigNumber(currencyAmount);
-    const currencyValue = currencyAmount.shiftedBy(this.data.currency.decimals);
-    const payValue = await this.dat.methods
-      .estimatePayValue(currencyValue.toFixed())
-      .call();
-    return new BigNumber(payValue).shiftedBy(-this.data.decimals);
-  }
-  pay(currencyAmount, sendToAddress) {
-    currencyAmount = new BigNumber(currencyAmount);
-    let sendTo;
-    if (sendToAddress && sendToAddress !== this.web3.utils.padLeft(0, 40)) {
-      sendTo = sendToAddress;
-    } else {
-      sendTo = this.data.account.address;
-    }
     const currencyValue = currencyAmount
       .shiftedBy(this.data.currency.decimals)
       .dp(0);
-    return this.dat.methods.pay(sendTo, currencyValue.toFixed());
+    return this.dat.methods.pay(currencyValue.toFixed());
   }
   async estimateExitFee() {
     const exitFee = await this.dat.methods.estimateExitFee("0").call();
@@ -480,13 +478,20 @@ module.exports = class CorgContracts {
       .dp(0);
     return this.dat.methods.burn(tokenValue.toFixed());
   }
+  burnFrom(from, tokenAmount) {
+    const tokenValue = new BigNumber(tokenAmount)
+      .shiftedBy(this.data.decimals)
+      .dp(0);
+    return this.dat.methods.burnFrom(from, tokenValue.toFixed());
+  }
   /**
    *
    * @param spender address of the account which will be able to spend your tokens
-   * @param expiry the timestamp in seconds for when the signed message is valid until
-   * @param allowed `true` to approve(-1) and `false` to approve(0) which removes approval
+   * @param value how many tokens the spender is approved to transfer
+   * @param deadline the timestamp in seconds for when the signed message is valid until
+   * @param nonce the owner's nonce, leave undefined to lookup the current nonce for that account
    */
-  async signPermit(spender, expiry, allowed) {
+  async signPermit(spender, value, deadline, nonce) {
     // Original source: https://medium.com/metamask/eip712-is-coming-what-to-expect-and-how-to-use-it-bb92fd1a7a26
     const domain = [
       { name: "name", type: "string" },
@@ -495,26 +500,34 @@ module.exports = class CorgContracts {
       { name: "verifyingContract", type: "address" },
     ];
     const permit = [
-      { name: "holder", type: "address" },
+      { name: "owner", type: "address" },
       { name: "spender", type: "address" },
+      { name: "value", type: "uint256" },
       { name: "nonce", type: "uint256" },
-      { name: "expiry", type: "uint256" },
-      { name: "allowed", type: "bool" },
+      { name: "deadline", type: "uint256" },
     ];
+    let chainId = await this.web3.eth.net.getId();
+    if (chainId >= 1337) {
+      // Ganache uses chainId 1
+      chainId = 1;
+    }
     const domainData = {
       name: this.data.name,
       version: this.data.version,
-      chainId: await this.web3.eth.net.getId(),
+      chainId,
       verifyingContract: this.dat._address,
     };
     const message = {
-      holder: this.data.account.address,
+      owner: this.data.account.address,
       spender,
-      nonce: await this.dat.methods.nonces(this.data.account.address).call(),
-      expiry,
-      allowed,
+      value,
+      nonce:
+        nonce === undefined
+          ? await this.dat.methods.nonces(this.data.account.address).call()
+          : nonce,
+      deadline,
     };
-    const data = JSON.stringify({
+    const data = {
       types: {
         EIP712Domain: domain,
         Permit: permit,
@@ -522,34 +535,295 @@ module.exports = class CorgContracts {
       domain: domainData,
       primaryType: "Permit",
       message,
-    });
+    };
     return new Promise((resolve, reject) => {
-      web3.currentProvider.sendAsync(
+      this.web3.currentProvider.send(
         {
-          method: "eth_signTypedData_v4",
+          jsonrpc: "2.0",
+          method: "eth_signTypedData",
           params: [this.data.account.address, data],
           from: this.data.account.address,
+          id: new Date().getTime(),
         },
-        function (err, result) {
+        (err, signature) => {
           if (err) {
             return reject(err);
           }
-          return resolve(result.result);
+          return resolve(signature.result);
         }
       );
     });
   }
-  sendPermit({ holder, spender, nonce, expiry, allowed, signature }) {
+  async sendPermit(owner, spender, value, deadline, signature) {
     const signatureHash = signature.substring(2);
     const r = "0x" + signatureHash.substring(0, 64);
     const s = "0x" + signatureHash.substring(64, 128);
     const v = parseInt(signatureHash.substring(128, 130), 16);
-    return this.dat.methods.permit(
-      holder,
-      spender,
-      nonce,
-      expiry,
-      allowed,
+    return this.dat.methods.permit(owner, spender, value, deadline, v, r, s);
+  }
+
+  /**
+   *
+   * @param sendToAddress address of the account which will receive FAIR from this purchase
+   * @param currencyAmount how many tokens the spender is approved to spend
+   * @param minTokensBought the minimum tokens expected from this purchase
+   * @param deadline the timestamp in seconds for when the signed message is valid until
+   * @param nonce the owner's nonce, leave undefined to lookup the current nonce for that account
+   */
+  async signPermitBuy(
+    sendToAddress,
+    currencyAmount,
+    minTokensBought,
+    deadline,
+    nonce
+  ) {
+    let sendTo;
+    if (sendToAddress && sendToAddress !== this.web3.utils.padLeft(0, 40)) {
+      sendTo = sendToAddress;
+    } else {
+      sendTo = this.data.account.address;
+    }
+    const currencyValue = new BigNumber(currencyAmount)
+      .shiftedBy(this.data.currency.decimals)
+      .dp(0);
+    let minBuyValue = new BigNumber(minTokensBought)
+      .shiftedBy(this.data.decimals)
+      .dp(0);
+    if (minBuyValue.lt(1)) {
+      minBuyValue = new BigNumber(1);
+    }
+
+    // Original source: https://medium.com/metamask/eip712-is-coming-what-to-expect-and-how-to-use-it-bb92fd1a7a26
+    const domain = [
+      { name: "name", type: "string" },
+      { name: "version", type: "string" },
+      { name: "chainId", type: "uint256" },
+      { name: "verifyingContract", type: "address" },
+    ];
+    const permitBuy = [
+      { name: "from", type: "address" },
+      { name: "to", type: "address" },
+      { name: "currencyValue", type: "uint256" },
+      { name: "minTokensBought", type: "uint256" },
+      { name: "nonce", type: "uint256" },
+      { name: "deadline", type: "uint256" },
+    ];
+    let chainId = await this.web3.eth.net.getId();
+    if (chainId >= 1337) {
+      // Ganache uses chainId 1
+      chainId = 1;
+    }
+    const domainData = {
+      name: this.data.name,
+      version: this.data.version,
+      chainId,
+      verifyingContract: this.dat._address,
+    };
+    const message = {
+      from: this.data.account.address,
+      to: sendTo,
+      currencyValue: currencyValue.toFixed(),
+      minTokensBought: minBuyValue.toFixed(),
+      nonce:
+        nonce === undefined
+          ? await this.dat.methods.nonces(this.data.account.address).call()
+          : nonce,
+      deadline,
+    };
+    const data = {
+      types: {
+        EIP712Domain: domain,
+        PermitBuy: permitBuy,
+      },
+      domain: domainData,
+      primaryType: "PermitBuy",
+      message,
+    };
+    return new Promise((resolve, reject) => {
+      this.web3.currentProvider.send(
+        {
+          jsonrpc: "2.0",
+          method: "eth_signTypedData",
+          params: [this.data.account.address, data],
+          from: this.data.account.address,
+          id: new Date().getTime(),
+        },
+        (err, signature) => {
+          if (err) {
+            return reject(err);
+          }
+          return resolve(signature.result);
+        }
+      );
+    });
+  }
+  async sendPermitBuy(
+    from,
+    sendToAddress,
+    currencyAmount,
+    minTokensBought,
+    deadline,
+    signature
+  ) {
+    let sendTo;
+    if (sendToAddress && sendToAddress !== this.web3.utils.padLeft(0, 40)) {
+      sendTo = sendToAddress;
+    } else {
+      sendTo = from;
+    }
+    const currencyValue = new BigNumber(currencyAmount)
+      .shiftedBy(this.data.currency.decimals)
+      .dp(0);
+    let minBuyValue = new BigNumber(minTokensBought)
+      .shiftedBy(this.data.decimals)
+      .dp(0);
+    if (minBuyValue.lt(1)) {
+      minBuyValue = new BigNumber(1);
+    }
+    const signatureHash = signature.substring(2);
+    const r = "0x" + signatureHash.substring(0, 64);
+    const s = "0x" + signatureHash.substring(64, 128);
+    const v = parseInt(signatureHash.substring(128, 130), 16);
+    return this.dat.methods.permitBuy(
+      from,
+      sendTo,
+      currencyValue.toFixed(),
+      minBuyValue.toFixed(),
+      deadline,
+      v,
+      r,
+      s
+    );
+  }
+
+  /**
+   *
+   * @param sendToAddress address of the account which will receive FAIR from this purchase
+   * @param quantityToSell how many tokens to sell
+   * @param minCurrencyReturned the minimum tokens expected from this purchase
+   * @param deadline the timestamp in seconds for when the signed message is valid until
+   * @param nonce the owner's nonce, leave undefined to lookup the current nonce for that account
+   */
+  async signPermitSell(
+    sendToAddress,
+    quantityToSell,
+    minCurrencyReturned,
+    deadline,
+    nonce
+  ) {
+    let sendTo;
+    if (sendToAddress && sendToAddress !== this.web3.utils.padLeft(0, 40)) {
+      sendTo = sendToAddress;
+    } else {
+      sendTo = this.data.account.address;
+    }
+    const fairValue = new BigNumber(quantityToSell)
+      .shiftedBy(this.data.decimals)
+      .dp(0);
+    let minCurrencyValue = new BigNumber(minCurrencyReturned)
+      .shiftedBy(this.data.currency.decimals)
+      .dp(0);
+    if (minCurrencyValue.lt(1)) {
+      minCurrencyValue = new BigNumber(1);
+    }
+
+    // Original source: https://medium.com/metamask/eip712-is-coming-what-to-expect-and-how-to-use-it-bb92fd1a7a26
+    const domain = [
+      { name: "name", type: "string" },
+      { name: "version", type: "string" },
+      { name: "chainId", type: "uint256" },
+      { name: "verifyingContract", type: "address" },
+    ];
+    const PermitSell = [
+      { name: "from", type: "address" },
+      { name: "to", type: "address" },
+      { name: "quantityToSell", type: "uint256" },
+      { name: "minCurrencyReturned", type: "uint256" },
+      { name: "nonce", type: "uint256" },
+      { name: "deadline", type: "uint256" },
+    ];
+    let chainId = await this.web3.eth.net.getId();
+    if (chainId >= 1337) {
+      // Ganache uses chainId 1
+      chainId = 1;
+    }
+    const domainData = {
+      name: this.data.name,
+      version: this.data.version,
+      chainId,
+      verifyingContract: this.dat._address,
+    };
+    const message = {
+      from: this.data.account.address,
+      to: sendTo,
+      quantityToSell: fairValue.toFixed(),
+      minCurrencyReturned: minCurrencyValue.toFixed(),
+      nonce:
+        nonce === undefined
+          ? await this.dat.methods.nonces(this.data.account.address).call()
+          : nonce,
+      deadline: deadline,
+    };
+    const data = {
+      types: {
+        EIP712Domain: domain,
+        PermitSell,
+      },
+      domain: domainData,
+      primaryType: "PermitSell",
+      message,
+    };
+    return new Promise((resolve, reject) => {
+      this.web3.currentProvider.send(
+        {
+          jsonrpc: "2.0",
+          method: "eth_signTypedData",
+          params: [this.data.account.address, data],
+          from: this.data.account.address,
+          id: new Date().getTime(),
+        },
+        (err, signature) => {
+          if (err) {
+            return reject(err);
+          }
+          return resolve(signature.result);
+        }
+      );
+    });
+  }
+  async sendPermitSell(
+    from,
+    sendToAddress,
+    quantityToSell,
+    minCurrencyReturned,
+    deadline,
+    signature
+  ) {
+    let sendTo;
+    if (sendToAddress && sendToAddress !== this.web3.utils.padLeft(0, 40)) {
+      sendTo = sendToAddress;
+    } else {
+      sendTo = from;
+    }
+    const fairValue = new BigNumber(quantityToSell)
+      .shiftedBy(this.data.decimals)
+      .dp(0);
+    let minCurrencyValue = new BigNumber(minCurrencyReturned)
+      .shiftedBy(this.data.currency.decimals)
+      .dp(0);
+    if (minCurrencyValue.lt(1)) {
+      minCurrencyValue = new BigNumber(1);
+    }
+    const signatureHash = signature.substring(2);
+    const r = "0x" + signatureHash.substring(0, 64);
+    const s = "0x" + signatureHash.substring(64, 128);
+    const v = parseInt(signatureHash.substring(128, 130), 16);
+    return this.dat.methods.permitSell(
+      from,
+      sendTo,
+      fairValue.toFixed(),
+      minCurrencyValue.toFixed(),
+      deadline,
       v,
       r,
       s
