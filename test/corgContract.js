@@ -354,7 +354,7 @@ contract("corgContract", (accounts) => {
 
       describe("burnFrom after purchase", () => {
         beforeEach(async () => {
-          await sendTx(corg.approve(constants.MAX_UINT));
+          await sendTx(corg.approveFair(accounts[2]));
           await sendTx(corg.burnFrom(accounts[3], "0.1"), {
             from: accounts[2],
           });

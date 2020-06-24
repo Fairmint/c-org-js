@@ -358,11 +358,20 @@ module.exports = class CorgContracts {
   }
 
   /**
-   * Calls `approve` on the currency for the specified value || unlimited if not specified.
+   * Calls `approve` on the currency for the dat to spend up to the specified value || unlimited if not specified.
    */
   approve(value) {
     return this.currency.methods.approve(
       this.dat._address,
+      value ? value : constants.MAX_UINT
+    );
+  }
+  /**
+   * Calls `approve` on FAIR for the spender to spend up to the specified value || unlimited if not specified.
+   */
+  approveFair(spender, value) {
+    return this.dat.methods.approve(
+      spender,
       value ? value : constants.MAX_UINT
     );
   }
