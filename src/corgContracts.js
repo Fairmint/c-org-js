@@ -131,7 +131,6 @@ module.exports = class CorgContracts {
       fee,
       revenueCommitment,
       minInvestment,
-      minDuration,
       stateId,
       whitelistOwner,
       whitelistLockupGranularity,
@@ -146,7 +145,6 @@ module.exports = class CorgContracts {
       this.dat.methods.feeBasisPoints().call(),
       this.dat.methods.revenueCommitmentBasisPoints().call(),
       this.dat.methods.minInvestment().call(),
-      this.dat.methods.minDuration().call(),
       this.dat.methods.state().call(),
       this.whitelist.methods.owner().call(),
       this.whitelist.methods.lockupGranularity().call(),
@@ -172,8 +170,14 @@ module.exports = class CorgContracts {
     this.data.minInvestment = new BigNumber(minInvestment).shiftedBy(
       -this.data.currency.decimals
     );
-    this.data.minDuration = minDuration;
     this.data.state = constants.STATES[stateId];
+
+    try {
+      // minDuration was added in v3, older versions will fall into this catch
+      this.data.minDuration = await this.dat.methods.minDuration().call();
+    } catch (e) {
+      console.log(`Missing minDuration (expected if version is < 3) ${e}`);
+    }
 
     // mintPrice. The price of the last transaction. For the preview, we can
     // safely calculate it with (total_supply+burnt_supply-init_reserve)*buy_slope durning
