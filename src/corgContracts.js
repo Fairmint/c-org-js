@@ -96,13 +96,19 @@ module.exports = class CorgContracts {
       },
       name,
       symbol,
-      version: "3", // reading version dynamically fails in the browser
       proxyImplementation,
       proxyAdmin,
       whitelistProxyAddress: this.whitelist._address,
       whitelistProxyImplementation,
       whitelistProxyAdmin,
     };
+
+    try {
+      this.data.version = this.dat.methods.version().call();
+    } catch (error) {
+      // Reading version expected to fail for version 1
+      this.data.version = 1;
+    }
 
     this.data.buySlope = new BigNumber(buySlopeNum)
       .shiftedBy(18 + 18 - this.data.currency.decimals)
