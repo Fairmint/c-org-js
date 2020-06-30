@@ -1,4 +1,5 @@
 module.exports = {
+  addresses: require("./src/addresses.json"),
   constants: require("./src/constants"),
   Corg: require("./src/c-org"),
   Networks: require("./src/networks"),
