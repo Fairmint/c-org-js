@@ -104,7 +104,7 @@ module.exports = class CorgContracts {
     };
 
     try {
-      this.data.version = this.dat.methods.version().call();
+      this.data.version = await this.dat.methods.version().call();
     } catch (error) {
       // Reading version expected to fail for version 1
       this.data.version = 1;
