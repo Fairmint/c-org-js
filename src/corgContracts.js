@@ -282,7 +282,6 @@ module.exports = class CorgContracts {
     const [
       ethBalance,
       fairBalance,
-      userId,
       currencyBalance,
       allowance,
     ] = await Promise.all([
