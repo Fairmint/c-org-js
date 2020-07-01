@@ -151,6 +151,7 @@ module.exports = class CorgContracts {
       this.dat.methods.state().call(),
     ]);
 
+    // Whitelist data
     if (this.whitelist._address !== constants.ZERO_ADDRESS) {
       const [
         whitelistOwner,
@@ -161,6 +162,12 @@ module.exports = class CorgContracts {
         this.whitelist.methods.lockupGranularity().call(),
         this.whitelist.methods.startDate().call(),
       ]);
+
+      this.data.whitelist = {
+        owner: whitelistOwner,
+        lockupGranularity: whitelistLockupGranularity,
+        startDate: whitelistStartDate,
+      };
     }
 
     this.data.revenueCommitment = new BigNumber(revenueCommitment).div(
@@ -264,13 +271,6 @@ module.exports = class CorgContracts {
       // This value should not be displayed unless in the RUN state
       this.data.marketSentiment = null;
     }
-
-    // Whitelist data
-    this.data.whitelist = {
-      owner: whitelistOwner,
-      lockupGranularity: whitelistLockupGranularity,
-      startDate: whitelistStartDate,
-    };
   }
 
   /**
