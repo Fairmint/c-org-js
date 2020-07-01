@@ -138,9 +138,6 @@ module.exports = class CorgContracts {
       revenueCommitment,
       minInvestment,
       stateId,
-      whitelistOwner,
-      whitelistLockupGranularity,
-      whitelistStartDate,
     ] = await Promise.all([
       this.dat.methods.totalSupply().call(),
       this.dat.methods.burnedSupply().call(),
@@ -152,10 +149,26 @@ module.exports = class CorgContracts {
       this.dat.methods.revenueCommitmentBasisPoints().call(),
       this.dat.methods.minInvestment().call(),
       this.dat.methods.state().call(),
-      this.whitelist.methods.owner().call(),
-      this.whitelist.methods.lockupGranularity().call(),
-      this.whitelist.methods.startDate().call(),
     ]);
+
+    // Whitelist data
+    if (this.whitelist._address !== constants.ZERO_ADDRESS) {
+      const [
+        whitelistOwner,
+        whitelistLockupGranularity,
+        whitelistStartDate,
+      ] = await Promise.all([
+        this.whitelist.methods.owner().call(),
+        this.whitelist.methods.lockupGranularity().call(),
+        this.whitelist.methods.startDate().call(),
+      ]);
+
+      this.data.whitelist = {
+        owner: whitelistOwner,
+        lockupGranularity: whitelistLockupGranularity,
+        startDate: whitelistStartDate,
+      };
+    }
 
     this.data.revenueCommitment = new BigNumber(revenueCommitment).div(
       constants.BASIS_POINTS_DEN
@@ -258,13 +271,6 @@ module.exports = class CorgContracts {
       // This value should not be displayed unless in the RUN state
       this.data.marketSentiment = null;
     }
-
-    // Whitelist data
-    this.data.whitelist = {
-      owner: whitelistOwner,
-      lockupGranularity: whitelistLockupGranularity,
-      startDate: whitelistStartDate,
-    };
   }
 
   /**
@@ -282,7 +288,6 @@ module.exports = class CorgContracts {
     ] = await Promise.all([
       this.web3.eth.getBalance(accountAddress),
       this.dat.methods.balanceOf(accountAddress).call(),
-      this.whitelist.methods.authorizedWalletToUserId(accountAddress).call(),
       this.currency
         ? this.currency.methods.balanceOf(accountAddress).call()
         : undefined,
@@ -296,25 +301,31 @@ module.exports = class CorgContracts {
     account.fairBalance = new BigNumber(fairBalance).shiftedBy(
       -this.data.decimals
     );
-    account.whitelist = {
-      userId,
-    };
-    if (userId !== constants.ZERO_ADDRESS) {
-      const {
-        jurisdictionId,
-        totalTokensLocked,
-        startIndex,
-        endIndex,
-      } = await this.whitelist.methods.getAuthorizedUserIdInfo(userId).call();
-      account.whitelist.jurisdictionId = jurisdictionId;
-      account.whitelist.totalTokensLocked = totalTokensLocked;
-      account.whitelist.startIndex = startIndex;
-      account.whitelist.endIndex = endIndex;
-    } else {
-      account.whitelist.jurisdictionId = 0;
-      account.whitelist.totalTokensLocked = 0;
-      account.whitelist.startIndex = 0;
-      account.whitelist.endIndex = 0;
+
+    if (this.whitelist._address !== constants.ZERO_ADDRESS) {
+      const userId = await this.whitelist.methods
+        .authorizedWalletToUserId(accountAddress)
+        .call();
+      account.whitelist = {
+        userId,
+      };
+      if (userId !== constants.ZERO_ADDRESS) {
+        const {
+          jurisdictionId,
+          totalTokensLocked,
+          startIndex,
+          endIndex,
+        } = await this.whitelist.methods.getAuthorizedUserIdInfo(userId).call();
+        account.whitelist.jurisdictionId = jurisdictionId;
+        account.whitelist.totalTokensLocked = totalTokensLocked;
+        account.whitelist.startIndex = startIndex;
+        account.whitelist.endIndex = endIndex;
+      } else {
+        account.whitelist.jurisdictionId = 0;
+        account.whitelist.totalTokensLocked = 0;
+        account.whitelist.startIndex = 0;
+        account.whitelist.endIndex = 0;
+      }
     }
 
     if (currencyBalance) {
