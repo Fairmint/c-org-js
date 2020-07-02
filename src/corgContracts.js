@@ -436,14 +436,16 @@ module.exports = class CorgContracts {
     );
   }
   async estimateSellValue(tokenAmount) {
-    if (!tokenAmount) return 0;
+    if (!tokenAmount) return new BigNumber(0);
     const tokenValue = new BigNumber(tokenAmount).shiftedBy(this.data.decimals);
+    if (tokenValue.isEqualTo(0)) return new BigNumber(0);
     try {
       const sellValue = await this.dat.methods
         .estimateSellValue(tokenValue.toFixed())
         .call();
       return new BigNumber(sellValue).shiftedBy(-this.data.currency.decimals);
     } catch (e) {
+      console.log(`Error reading sellValue: ${e}`);
       // likely > totalSupply
       return new BigNumber(0);
     }
