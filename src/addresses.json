@@ -29,8 +29,8 @@
   "ropsten": {
     "testDAI": "0xC6037Ea1d990999148d81E7eD671f9bF769F144f",
     "testUSDC": "0x14039994048f873dc5F86a32075669652b9F0fA7",
-    "datTemplate": "0x0580012061bcB2cf18A2500f150ac31082f99d25",
-    "whitelistTemplate": "0x110eee1f892057a97e5205cd405f5718241f9446",
+    "datTemplate": "0xf1e97ad5faa75395f395ccd074a0d68169551f6f",
+    "whitelistTemplate": "0x49e4727488712c081c5d58087f21807ad19b584e",
     "orgs": [
       { 
         "name": "Testnet Fair Org",
@@ -40,9 +40,9 @@
       },
       { 
         "name": "V3 test",
-        "token": "0x9b84d0fe940111d167982fa1f41fed5dc76de0f8",
-        "proxyAdmin": "0x26692ed700f17d637ae470d9a8cb386a59afacfd",
-        "whitelist": "0x165901301192ce300077dace01a236df19c33e61"
+        "token": "0xdc3dcb2e30336551b99f97653afefaff2f9bf158",
+        "proxyAdmin": "0x7f8550fc3a8728166612f14757dd7982abd885bb",
+        "whitelist": "0xa55d7f0d44316932c376d420a3160827975234ba"
       }
     ]
   }
