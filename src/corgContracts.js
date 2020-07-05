@@ -542,12 +542,12 @@ module.exports = class CorgContracts {
     const message = {
       owner: this.data.account.address,
       spender,
-      value,
+      value: value === undefined ? constants.MAX_UINT : value,
       nonce:
         nonce === undefined
           ? await this.dat.methods.nonces(this.data.account.address).call()
           : nonce,
-      deadline,
+      deadline: deadline || constants.MAX_UINT,
     };
     const data = {
       types: {
@@ -559,21 +559,39 @@ module.exports = class CorgContracts {
       message,
     };
     return new Promise((resolve, reject) => {
-      this.web3.currentProvider.send(
-        {
-          jsonrpc: "2.0",
-          method: "eth_signTypedData",
-          params: [this.data.account.address, data],
-          from: this.data.account.address,
-          id: new Date().getTime(),
-        },
-        (err, signature) => {
-          if (err) {
-            return reject(err);
+      if (this.web3.currentProvider.isMetaMask) {
+        this.web3.currentProvider.send(
+          {
+            jsonrpc: "2.0",
+            method: "eth_signTypedData_v4",
+            params: [this.data.account.address, JSON.stringify(data)],
+            from: this.data.account.address,
+            id: new Date().getTime(),
+          },
+          (err, signature) => {
+            if (err) {
+              return reject(err);
+            }
+            return resolve(signature.result);
           }
-          return resolve(signature.result);
-        }
-      );
+        );
+      } else {
+        this.web3.currentProvider.send(
+          {
+            jsonrpc: "2.0",
+            method: "eth_signTypedData",
+            params: [this.data.account.address, data],
+            from: this.data.account.address,
+            id: new Date().getTime(),
+          },
+          (err, signature) => {
+            if (err) {
+              return reject(err);
+            }
+            return resolve(signature.result);
+          }
+        );
+      }
     });
   }
   async sendPermit(owner, spender, value, deadline, signature) {
@@ -581,7 +599,15 @@ module.exports = class CorgContracts {
     const r = "0x" + signatureHash.substring(0, 64);
     const s = "0x" + signatureHash.substring(64, 128);
     const v = parseInt(signatureHash.substring(128, 130), 16);
-    return this.dat.methods.permit(owner, spender, value, deadline, v, r, s);
+    return this.dat.methods.permit(
+      owner,
+      spender,
+      value === undefined ? constants.MAX_UINT : value,
+      deadline || constants.MAX_UINT,
+      v,
+      r,
+      s
+    );
   }
 
   /**
@@ -650,7 +676,7 @@ module.exports = class CorgContracts {
         nonce === undefined
           ? await this.dat.methods.nonces(this.data.account.address).call()
           : nonce,
-      deadline,
+      deadline: deadline || constants.MAX_UINT,
     };
     const data = {
       types: {
@@ -662,21 +688,39 @@ module.exports = class CorgContracts {
       message,
     };
     return new Promise((resolve, reject) => {
-      this.web3.currentProvider.send(
-        {
-          jsonrpc: "2.0",
-          method: "eth_signTypedData",
-          params: [this.data.account.address, data],
-          from: this.data.account.address,
-          id: new Date().getTime(),
-        },
-        (err, signature) => {
-          if (err) {
-            return reject(err);
+      if (this.web3.currentProvider.isMetaMask) {
+        this.web3.currentProvider.send(
+          {
+            jsonrpc: "2.0",
+            method: "eth_signTypedData_v4",
+            params: [this.data.account.address, JSON.stringify(data)],
+            from: this.data.account.address,
+            id: new Date().getTime(),
+          },
+          (err, signature) => {
+            if (err) {
+              return reject(err);
+            }
+            return resolve(signature.result);
           }
-          return resolve(signature.result);
-        }
-      );
+        );
+      } else {
+        this.web3.currentProvider.send(
+          {
+            jsonrpc: "2.0",
+            method: "eth_signTypedData",
+            params: [this.data.account.address, data],
+            from: this.data.account.address,
+            id: new Date().getTime(),
+          },
+          (err, signature) => {
+            if (err) {
+              return reject(err);
+            }
+            return resolve(signature.result);
+          }
+        );
+      }
     });
   }
   async sendPermitBuy(
@@ -711,7 +755,7 @@ module.exports = class CorgContracts {
       sendTo,
       currencyValue.toFixed(),
       minBuyValue.toFixed(),
-      deadline,
+      deadline || constants.MAX_UINT,
       v,
       r,
       s
@@ -784,7 +828,7 @@ module.exports = class CorgContracts {
         nonce === undefined
           ? await this.dat.methods.nonces(this.data.account.address).call()
           : nonce,
-      deadline: deadline,
+      deadline: deadline || constants.MAX_UINT,
     };
     const data = {
       types: {
@@ -796,21 +840,40 @@ module.exports = class CorgContracts {
       message,
     };
     return new Promise((resolve, reject) => {
-      this.web3.currentProvider.send(
-        {
-          jsonrpc: "2.0",
-          method: "eth_signTypedData",
-          params: [this.data.account.address, data],
-          from: this.data.account.address,
-          id: new Date().getTime(),
-        },
-        (err, signature) => {
-          if (err) {
-            return reject(err);
+      if (this.web3.currentProvider.isMetaMask) {
+        this.web3.currentProvider.send(
+          {
+            jsonrpc: "2.0",
+            method: "eth_signTypedData_v4",
+            params: [this.data.account.address, JSON.stringify(data)],
+            from: this.data.account.address,
+            id: new Date().getTime(),
+          },
+          (err, signature) => {
+            if (err) {
+              return reject(err);
+            }
+            return resolve(signature.result);
           }
-          return resolve(signature.result);
-        }
-      );
+        );
+      }
+      } else {
+        this.web3.currentProvider.send(
+          {
+            jsonrpc: "2.0",
+            method: "eth_signTypedData",
+            params: [this.data.account.address, data],
+            from: this.data.account.address,
+            id: new Date().getTime(),
+          },
+          (err, signature) => {
+            if (err) {
+              return reject(err);
+            }
+            return resolve(signature.result);
+          }
+        );
+      }
     });
   }
   async sendPermitSell(
@@ -845,7 +908,7 @@ module.exports = class CorgContracts {
       sendTo,
       fairValue.toFixed(),
       minCurrencyValue.toFixed(),
-      deadline,
+      deadline || constants.MAX_UINT,
       v,
       r,
       s
