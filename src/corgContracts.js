@@ -594,7 +594,7 @@ module.exports = class CorgContracts {
       }
     });
   }
-  async sendPermit(owner, spender, value, deadline, signature) {
+  sendPermit(owner, spender, value, deadline, signature) {
     const signatureHash = signature.substring(2);
     const r = "0x" + signatureHash.substring(0, 64);
     const s = "0x" + signatureHash.substring(64, 128);
@@ -723,7 +723,7 @@ module.exports = class CorgContracts {
       }
     });
   }
-  async sendPermitBuy(
+  sendPermitBuy(
     from,
     sendToAddress,
     currencyAmount,
@@ -875,7 +875,7 @@ module.exports = class CorgContracts {
       }
     });
   }
-  async sendPermitSell(
+  sendPermitSell(
     from,
     sendToAddress,
     quantityToSell,
