@@ -856,7 +856,6 @@ module.exports = class CorgContracts {
             return resolve(signature.result);
           }
         );
-      }
       } else {
         this.web3.currentProvider.send(
           {
