@@ -14,7 +14,7 @@
     "@fairmint/c-org-abi": "2.4.4",
     "bignumber.js": "9.0.0",
     "hardlydifficult-eth": "1.1.1",
-    "web3": "1.2.6"
+    "web3": "1.2.9"
   },
   "devDependencies": {
     "eslint": "7.4.0",
