@@ -13,6 +13,12 @@
   },
   "packageRules": [
     {
+      "packagePatterns": ["web3"],
+      "patch": {
+        "groupName": null
+      }
+    },
+    {
       "packagePatterns": ["hardlydifficult", "fairmint", "unlock"],
       "schedule": ["at any time"],
       "patch": {
