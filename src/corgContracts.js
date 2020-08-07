@@ -281,7 +281,7 @@ module.exports = class CorgContracts {
     const account = { address: accountAddress };
     const [
       ethBalance,
-      fairBalance,
+      tokenBalance,
       currencyBalance,
       allowance,
     ] = await Promise.all([
@@ -297,7 +297,7 @@ module.exports = class CorgContracts {
         : undefined,
     ]);
     account.ethBalance = new BigNumber(ethBalance).shiftedBy(-18);
-    account.fairBalance = new BigNumber(fairBalance).shiftedBy(
+    account.tokenBalance = new BigNumber(tokenBalance).shiftedBy(
       -this.data.decimals
     );
 
