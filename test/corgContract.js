@@ -74,7 +74,7 @@ contract("corgContract", (accounts) => {
 
   it("Defaults to 0 balance", async () => {
     await corg.refreshAccountInfo(accounts[3]);
-    assert.equal(corg.data.account.fairBalance.toFixed(), "0");
+    assert.equal(corg.data.account.tokenBalance.toFixed(), "0");
   });
 
   it("Has the implementation address", async () => {
@@ -244,7 +244,7 @@ contract("corgContract", (accounts) => {
       it("Can permitBuy fair", async () => {
         await corg.refreshAccountInfo(to);
         assert.equal(
-          corg.data.account.fairBalance.toFixed(),
+          corg.data.account.tokenBalance.toFixed(),
           "14.142135623730950488"
         );
       });
@@ -309,7 +309,7 @@ contract("corgContract", (accounts) => {
       it("Can buy fair", async () => {
         await corg.refreshAccountInfo(accounts[3]);
         assert.equal(
-          corg.data.account.fairBalance.toFixed(),
+          corg.data.account.tokenBalance.toFixed(),
           "14.142135623730950488"
         );
       });
@@ -332,7 +332,7 @@ contract("corgContract", (accounts) => {
         it("Can pay the contract", async () => {
           await corg.refreshAccountInfo(accounts[3]);
           assert.equal(
-            corg.data.account.fairBalance.toFixed(),
+            corg.data.account.tokenBalance.toFixed(),
             "14.142135623730950488"
           );
         });
@@ -346,7 +346,7 @@ contract("corgContract", (accounts) => {
         it("Can burn fair", async () => {
           await corg.refreshAccountInfo(accounts[3]);
           assert.equal(
-            corg.data.account.fairBalance.toFixed(),
+            corg.data.account.tokenBalance.toFixed(),
             "14.042135623730950488"
           );
         });
@@ -363,7 +363,7 @@ contract("corgContract", (accounts) => {
         it("Can burn fair", async () => {
           await corg.refreshAccountInfo(accounts[3]);
           assert.equal(
-            corg.data.account.fairBalance.toFixed(),
+            corg.data.account.tokenBalance.toFixed(),
             "14.042135623730950488"
           );
         });
@@ -378,7 +378,7 @@ contract("corgContract", (accounts) => {
         it("Can sell fair", async () => {
           await corg.refreshAccountInfo(accounts[3]);
           assert.equal(
-            corg.data.account.fairBalance.toFixed(),
+            corg.data.account.tokenBalance.toFixed(),
             "13.142135623730950488"
           );
         });
@@ -411,7 +411,7 @@ contract("corgContract", (accounts) => {
         it("Can sell fair", async () => {
           await corg.refreshAccountInfo(to);
           assert.equal(
-            corg.data.account.fairBalance.toFixed(),
+            corg.data.account.tokenBalance.toFixed(),
             "13.142135623730950488"
           );
         });
