@@ -274,10 +274,9 @@ module.exports = class CorgContracts {
   }
 
   /**
-   * @notice Call anytime to refresh account information.
-   * @dev These values may change anytime the user has a transaction mined.
+   * Returns the account information
    */
-  async refreshAccountInfo(accountAddress) {
+  async getAccountInfo(accountAddress) {
     const account = { address: accountAddress };
     const [
       ethBalance,
@@ -336,7 +335,15 @@ module.exports = class CorgContracts {
       );
     }
 
-    this.data.account = account;
+    return account;
+  }
+
+  /**
+   * @notice Call anytime to refresh account information.
+   * @dev These values may change anytime the user has a transaction mined.
+   */
+  async refreshAccountInfo(accountAddress) {
+    this.data.account = await this.getAccountInfo(accountAddress);
   }
 
   /**
