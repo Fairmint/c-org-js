@@ -200,9 +200,9 @@ module.exports = class CorgContracts {
 
     // mintPrice. The price of the last transaction. For the preview, we can
     // safely calculate it with (total_supply+burnt_supply-init_reserve)*buy_slope durning
-    // RUN (or CLOSE).  price=init_goal*buy_slope/2 during INIT (or CANCEL)
+    // RUN (or CLOSE).  price=init_goal*buy_slope during INIT (or CANCEL)
     if (this.data.state === "INIT" || this.data.state === "CANCEL") {
-      this.data.mintPrice = this.data.initGoal.times(this.data.buySlope).div(2);
+      this.data.mintPrice = this.data.initGoal.times(this.data.buySlope);
     } else {
       this.data.mintPrice = this.data.totalSupply
         .plus(this.data.burnedSupply)
