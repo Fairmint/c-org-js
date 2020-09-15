@@ -98,7 +98,9 @@ async function initializeDat(web3, from, datProxyAddress, options) {
     options
   );
   const dat = await getDat(web3, datProxyAddress);
-  await dat.initialize(
+  await dat.methods[
+    "initialize(uint256,address,uint256,uint256,uint256,uint256,uint256,address,string,string)"
+  ](
     callOptions.initReserve,
     callOptions.currency,
     callOptions.initGoal,
