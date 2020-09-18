@@ -402,6 +402,10 @@ module.exports = class CorgContracts {
       value ? value : constants.MAX_UINT
     );
   }
+  async authorizedWalletToUserId(walletAddress) {
+    const userId = await this.whitelist.methods.authorizedWalletToUserId(walletAddress).call();
+    return userId;
+  }
   approveNewUsers(accounts, jurisdictionIds) {
     return this.whitelist.methods.approveNewUsers(accounts, jurisdictionIds);
   }
