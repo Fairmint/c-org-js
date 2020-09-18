@@ -412,6 +412,9 @@ module.exports = class CorgContracts {
   addApprovedUserWallets(userIds, newWallets) {
     return this.whitelist.methods.addApprovedUserWallets(userIds, newWallets);
   }
+  updateJurisdictionsForUserIds(userIds, jurisdictionIds) {
+    return this.whitelist.methods.updateJurisdictionsForUserIds(userIds, jurisdictionIds);
+  }
   async estimateBuyValue(currencyAmount) {
     if (!currencyAmount) return 0;
     const currencyValue = new BigNumber(currencyAmount).shiftedBy(
