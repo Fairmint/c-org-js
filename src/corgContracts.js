@@ -402,8 +402,25 @@ module.exports = class CorgContracts {
       value ? value : constants.MAX_UINT
     );
   }
+  authorizedWalletToUserId(walletAddress) {
+    return this.whitelist.methods
+      .authorizedWalletToUserId(walletAddress)
+      .call();
+  }
+  getAuthorizedUserIdInfo(userId) {
+    return this.whitelist.methods.getAuthorizedUserIdInfo(userId).call();
+  }
   approveNewUsers(accounts, jurisdictionIds) {
     return this.whitelist.methods.approveNewUsers(accounts, jurisdictionIds);
+  }
+  addApprovedUserWallets(userIds, newWallets) {
+    return this.whitelist.methods.addApprovedUserWallets(userIds, newWallets);
+  }
+  updateJurisdictionsForUserIds(userIds, jurisdictionIds) {
+    return this.whitelist.methods.updateJurisdictionsForUserIds(
+      userIds,
+      jurisdictionIds
+    );
   }
   async estimateBuyValue(currencyAmount) {
     if (!currencyAmount) return 0;
