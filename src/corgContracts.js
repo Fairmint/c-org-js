@@ -403,7 +403,9 @@ module.exports = class CorgContracts {
     );
   }
   authorizedWalletToUserId(walletAddress) {
-    return this.whitelist.methods.authorizedWalletToUserId(walletAddress).call();
+    return this.whitelist.methods
+      .authorizedWalletToUserId(walletAddress)
+      .call();
   }
   getAuthorizedUserIdInfo(userId) {
     return this.whitelist.methods.getAuthorizedUserIdInfo(userId).call();
@@ -415,7 +417,10 @@ module.exports = class CorgContracts {
     return this.whitelist.methods.addApprovedUserWallets(userIds, newWallets);
   }
   updateJurisdictionsForUserIds(userIds, jurisdictionIds) {
-    return this.whitelist.methods.updateJurisdictionsForUserIds(userIds, jurisdictionIds);
+    return this.whitelist.methods.updateJurisdictionsForUserIds(
+      userIds,
+      jurisdictionIds
+    );
   }
   async estimateBuyValue(currencyAmount) {
     if (!currencyAmount) return 0;
