@@ -636,6 +636,95 @@ module.exports = class CorgContracts {
 
   /**
    *
+   * @param spender address of the account which will be able to spend your currency
+   * @param value how much currency the spender is approved to transfer
+   * @param deadline the timestamp in seconds for when the signed message is valid until
+   * @param nonce the owner's nonce, leave undefined to lookup the current nonce for that account
+   */
+  async signCurrencyPermit(spender, value, deadline, nonce) {
+    // Original source: https://medium.com/metamask/eip712-is-coming-what-to-expect-and-how-to-use-it-bb92fd1a7a26
+    const domain = [
+      { name: "name", type: "string" },
+      { name: "version", type: "string" },
+      { name: "chainId", type: "uint256" },
+      { name: "verifyingContract", type: "address" },
+    ];
+    const permit = [
+      { name: "owner", type: "address" },
+      { name: "spender", type: "address" },
+      { name: "value", type: "uint256" },
+      { name: "nonce", type: "uint256" },
+      { name: "deadline", type: "uint256" },
+    ];
+    let chainId = await this.web3.eth.net.getId();
+    if (chainId >= 1337) {
+      // Ganache uses chainId 1
+      chainId = 1;
+    }
+    const domainData = {
+      name: this.data.name,
+      version: this.data.version,
+      chainId,
+      verifyingContract: this.currency._address,
+    };
+    const message = {
+      owner: this.data.account.address,
+      spender,
+      value: value === undefined ? constants.MAX_UINT : value,
+      nonce:
+        nonce === undefined
+          ? await this.currency.methods.nonces(this.data.account.address).call()
+          : nonce,
+      deadline: deadline || constants.MAX_UINT,
+    };
+    const data = {
+      types: {
+        EIP712Domain: domain,
+        Permit: permit,
+      },
+      domain: domainData,
+      primaryType: "Permit",
+      message,
+    };
+    return new Promise((resolve, reject) => {
+      if (this.web3.currentProvider.isMetaMask) {
+        this.web3.currentProvider.send(
+          {
+            jsonrpc: "2.0",
+            method: "eth_signTypedData_v4",
+            params: [this.data.account.address, JSON.stringify(data)],
+            from: this.data.account.address,
+            id: new Date().getTime(),
+          },
+          (err, signature) => {
+            if (err) {
+              return reject(err);
+            }
+            return resolve(signature.result);
+          }
+        );
+      } else {
+        this.web3.currentProvider.send(
+          {
+            jsonrpc: "2.0",
+            method: "eth_signTypedData",
+            params: [this.data.account.address, data],
+            from: this.data.account.address,
+            id: new Date().getTime(),
+          },
+          (err, signature) => {
+            if (err) {
+              return reject(err);
+            }
+            return resolve(signature.result);
+          }
+        );
+      }
+    });
+  }
+
+  /**
+   *
    * @param sendToAddress address of the account which will receive FAIR from this purchase
    * @param currencyAmount how many tokens the spender is approved to spend
    * @param minTokensBought the minimum tokens expected from this purchase
