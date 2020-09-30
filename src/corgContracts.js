@@ -722,6 +722,21 @@ module.exports = class CorgContracts {
       }
     });
   }
+  sendCurrencyPermit(owner, spender, value, deadline, signature) {
+    const signatureHash = signature.substring(2);
+    const r = "0x" + signatureHash.substring(0, 64);
+    const s = "0x" + signatureHash.substring(64, 128);
+    const v = parseInt(signatureHash.substring(128, 130), 16);
+    return this.currency.methods.permit(
+      owner,
+      spender,
+      value === undefined ? constants.MAX_UINT : value,
+      deadline || constants.MAX_UINT,
+      v,
+      r,
+      s
+    );
+  }
 
   /**
    *
