@@ -293,8 +293,8 @@ module.exports = class CorgContracts {
         : undefined,
       this.currency
         ? this.currency.methods
-          .allowance(accountAddress, this.dat._address)
-          .call()
+            .allowance(accountAddress, this.dat._address)
+            .call()
         : undefined,
     ]);
     account.ethBalance = new BigNumber(ethBalance).shiftedBy(-18);
