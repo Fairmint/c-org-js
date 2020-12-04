@@ -293,7 +293,10 @@ contract("corgContract", (accounts) => {
         assert(corg.data.marketCap.gt(0));
         assert.equal(
           corg.data.marketCap.toFixed(),
-          corg.data.totalSupply.times(corg.data.mintPrice).toFixed()
+          corg.data.totalSupply
+            .minus(corg.data.initReserve)
+            .times(corg.data.mintPrice)
+            .toFixed()
         );
       });
 
