@@ -214,7 +214,9 @@ module.exports = class CorgContracts {
     // at first it's always == mintPrice
     this.data.lastTokenPrice = this.data.mintPrice;
 
-    this.data.marketCap = this.data.totalSupply.times(this.data.mintPrice);
+    this.data.marketCap = this.data.totalSupply
+      .minus(this.data.initReserve)
+      .times(this.data.mintPrice);
 
     if (this.data.state === "INIT") {
       this.data.redeemPrice = this.data.mintPrice;
@@ -291,8 +293,8 @@ module.exports = class CorgContracts {
         : undefined,
       this.currency
         ? this.currency.methods
-            .allowance(accountAddress, this.dat._address)
-            .call()
+          .allowance(accountAddress, this.dat._address)
+          .call()
         : undefined,
     ]);
     account.ethBalance = new BigNumber(ethBalance).shiftedBy(-18);
