@@ -15,7 +15,6 @@ jobs:
       - run: npm i
       
       - run: npm run lintNoFix
-      - run: npm run test
 
       # save checkout & build
       - persist_to_workspace:
@@ -43,12 +42,10 @@ workflows:
     jobs:
       - test:
           filters:
-            branches:
-              ignore:
-                - gh-pages
-                - artifacts
             tags:
               only: /^v.*/
+            branches:
+              ignore: /.*/
       - publish:
           requires:
             - test
