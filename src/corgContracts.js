@@ -214,7 +214,9 @@ module.exports = class CorgContracts {
     // at first it's always == mintPrice
     this.data.lastTokenPrice = this.data.mintPrice;
 
-    this.data.marketCap = this.data.totalSupply.times(this.data.mintPrice);
+    this.data.marketCap = this.data.totalSupply
+      .minus(this.data.initReserve)
+      .times(this.data.mintPrice);
 
     if (this.data.state === "INIT") {
       this.data.redeemPrice = this.data.mintPrice;
