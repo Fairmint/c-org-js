@@ -41,17 +41,7 @@ jobs:
 workflows:
   build:
     jobs:
-      - test:
-          filters:
-            branches:
-              ignore:
-                - gh-pages
-                - artifacts
-            tags:
-              only: /^v.*/
       - publish:
-          requires:
-            - test
           filters:
             tags:
               only: /^v.*/
